@@ -3,9 +3,9 @@ Research on using riemannian geodesics to improve 6-DoF pose estimation. (Tensor
 
 Date: 3-15-21
 
-# Built the Autoencoder to get the outlines of the object (Segmentation).
+1) Built the Autoencoder to get the outlines of the object (Segmentation).
 
 Next Steps
 
-# To build the pose regressor and reimannian loss function.
-# Test on real-life data.
+1) To build the pose regressor and reimannian loss function.
+2) Test on real-life data.
