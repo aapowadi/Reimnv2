@@ -39,7 +39,7 @@ def exs(name):
     ex_test["model"] = Model_8n_sub_tst
     ex_test["batch_size"] = 128
     ex_test["learning_rate"] = 0.001
-    ex_test["num_iterations"] = 400
+    ex_test["num_iterations"] = 100
     ex_test["debug_output"] = True
     ex_test["log_path"] = "./log_syn/ex_test/"
     ex_test["log_file"] = "plx64"
@@ -64,7 +64,7 @@ def exs(name):
     ex1n_valid["solver"] = solver_nvalid
     ex1n_valid["model"] = Model_8n_sub_tst
     ex1n_valid["learning_rate"] = 0.001
-    ex1n_valid["num_iterations"] = 100
+    ex1n_valid["num_iterations"] = 700
     ex1n_valid["debug_output"] = True
     ex1n_valid["log_path"] = "./log_syn/ex1n/"
     ex1n_valid["log_file"] = "plx64"
@@ -130,7 +130,7 @@ def exs(name):
     ex2n["eval_dataset"] = "../../datasets/tr-128-40k.pickle"
     ex2n["solver"] = Solver_reim_cm
     ex2n["model"] = Model_8n_sub_tst
-    ex2n["learning_rate"] = 0.001
+    ex2n["learning_rate"] = 0.1
     ex2n["num_iterations"] = 100
     ex2n["debug_output"] = True
     ex2n["log_path"] = "./log_syn/ex2n/"
