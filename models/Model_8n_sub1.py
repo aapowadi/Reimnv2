@@ -4,6 +4,7 @@ from tensorflow.keras.layers import BatchNormalization
 from tensorflow.keras.layers import MaxPooling2D
 from tensorflow.keras.layers import Conv2D
 from tensorflow.keras.layers import Conv2DTranspose
+from tensorflow.keras.layers import UpSampling2D
 from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import Dropout
 import tensorflow as tf
@@ -99,16 +100,16 @@ class Model_8n_sub1(keras.Model):
         if training:
             x = self.drop4(x)
         # Layer 5
-        x = self.up_sam5(x)
+        x = UpSampling2D((2, 2))(x)
         x = self.conv5u(x)
         # Layer 6
-        x = self.up_sam6(x)
+        x = UpSampling2D((2,2))(x)
         x = self.conv6u(x)
         # Layer 7
-        x = self.up_sam7(x)
+        x = UpSampling2D((2,2))(x)
         x = self.conv7u(x)
         # Layer 8
-        x = self.up_sam8(x)
+        x = UpSampling2D((2,2))(x)
         x = self.conv8u(x)
         seg_logits= tf.reshape(tensor=x,shape=(-1, self.img_height * self.img_height, self.number_of_classes))
         ## First to second stage transition

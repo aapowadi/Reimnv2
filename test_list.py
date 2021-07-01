@@ -38,8 +38,8 @@ def exs(name):
     ex_test["solver"] = Solver_reim_cm
     ex_test["model"] = Model_8n_sub_tst
     ex_test["batch_size"] = 128
-    ex_test["learning_rate"] = 0.1
-    ex_test["num_iterations"] = 100
+    ex_test["learning_rate"] = 0.001
+    ex_test["num_iterations"] = 400
     ex_test["debug_output"] = True
     ex_test["log_path"] = "./log_syn/ex_test/"
     ex_test["log_file"] = "plx64"
