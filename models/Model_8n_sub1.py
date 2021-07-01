@@ -100,16 +100,16 @@ class Model_8n_sub1(keras.Model):
         if training:
             x = self.drop4(x)
         # Layer 5
-        x = UpSampling2D((2, 2))(x)
+        x = UpSampling2D((2, 2),interpolation="bilinear")(x)
         x = self.conv5u(x)
         # Layer 6
-        x = UpSampling2D((2,2))(x)
+        x = UpSampling2D((2, 2),interpolation="bilinear")(x)
         x = self.conv6u(x)
         # Layer 7
-        x = UpSampling2D((2,2))(x)
+        x = UpSampling2D((2, 2),interpolation="bilinear")(x)
         x = self.conv7u(x)
         # Layer 8
-        x = UpSampling2D((2,2))(x)
+        x = UpSampling2D((2, 2),interpolation="bilinear")(x)
         x = self.conv8u(x)
         seg_logits= tf.reshape(tensor=x,shape=(-1, self.img_height * self.img_height, self.number_of_classes))
         ## First to second stage transition

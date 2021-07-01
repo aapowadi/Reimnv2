@@ -46,7 +46,7 @@ def exs(name):
     ex_test["train"] = True
     ex_test["eval"] = False
     ex_test["test"] = False
-    ex_test["proof"] = False
+    ex_test["proof"] = True
     ex_test["stage2"] = False
     ex_test["cont"] = False
     ex_test["drp_cnv"] = 0.0
