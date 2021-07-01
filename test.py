@@ -1,5 +1,7 @@
+import sys
+sys.dont_write_bytecode = True
 from Experiment import *
-from over_fit_syn import *
+from test_list import *
 import sys, getopt
 
 def main(argv):

@@ -16,7 +16,7 @@ def exs(name):
     ex_test_valid["solver"] = solver_nvalid
     ex_test_valid["model"] = Model_8n
     ex_test_valid["learning_rate"] = 0.1
-    ex_test_valid["batch_size"] = 1
+    ex_test_valid["batch_size"] = 128
     ex_test_valid["num_iterations"] = 100
     ex_test_valid["debug_output"] = True
     ex_test_valid["log_path"] = "./log_real_128/ex_test/"
@@ -25,7 +25,7 @@ def exs(name):
     ex_test_valid["eval"] = True
     ex_test_valid["test"] = False
     ex_test_valid["proof"] = False
-    ex_test_valid["restore_file"] = "plx64-110.meta"  # keep empty to not restore a model.
+    ex_test_valid["restore_file"] = "plx64-100.meta"  # keep empty to not restore a model.
     ex_test_valid["quat_used"] = False  # set true, if the dataset contains quaternions. Otherwise false.
     ex_test_valid["plot_title"] = "plx128_overfit: ex_test"
     ex_test_valid["label"] = "Experiment.py"
@@ -39,7 +39,7 @@ def exs(name):
     ex_test["model"] = Model_8n
     ex_test["batch_size"] = 128
     ex_test["learning_rate"] = 0.001
-    ex_test["num_iterations"] = 10
+    ex_test["num_iterations"] = 100
     ex_test["debug_output"] = True
     ex_test["log_path"] = "./log_real_128/ex_test/"
     ex_test["log_file"] = "plx64"

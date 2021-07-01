@@ -6,13 +6,11 @@
 
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --ntasks-per-node=1   # 16 processor core(s) per node
-#SBATCH --job-name="Ri_ex_test"
+#SBATCH --job-name="rel128n"
 #SBATCH --output="s%j.out" # job standard output file (%j replaced by job id)
 #
-. ../../venv/bin/activate
-export GEOMSTATS_BACKEND=tensorflow
+. ../../cnn/bin/activate
 cd /home/aapowadi/anirudha/m_exps/Reimnv2/
+python ex_real.py -i ex1
 
-python3 ex_syn.py -i ex_test
-
-#python ex_real.py -i ex_test_valid
+python ex_real.py -i ex1n_valid

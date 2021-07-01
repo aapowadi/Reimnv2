@@ -6,16 +6,13 @@
 
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --ntasks-per-node=1   # 16 processor core(s) per node
-#SBATCH --job-name="128-14-5"
+#SBATCH --job-name="test"
 #SBATCH --output="s%j.out" # job standard output file (%j replaced by job id)
 #
-. ../../cnn/bin/activate
-cd /home/aapowadi/anirudha/m_exps/over_fit_128/
+. ../../venv/bin/activate
+export GEOMSTATS_BACKEND=tensorflow
+cd /home/aapowadi/anirudha/m_exps/Reimnv2/
 
-python ex_real.py -i ex14n
+python3 test.py -i ex_test
 
-python ex_real.py -i ex14n_valid
-
-#python ex_real.py -i ex15n
-#
-#python ex_real.py -i ex15n_valid
+#python ex_real.py -i ex_test_valid

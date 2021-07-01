@@ -3,10 +3,10 @@ sys.dont_write_bytecode = True
 import numpy as np
 import os
 import cv2
-from models.Model_8n_sub1 import *
 from solvers.tools.reim_loss import *
 import tensorflow as tf
 from solvers.tools.test_tool import *
+
 class Solver_reim_cm:
     """
     """
@@ -228,7 +228,7 @@ class Solver_reim_cm:
             #     saver.restore(sess, tf.train.latest_checkpoint(self.saver_log_folder + "../"))
             #     print("Model restored at epoche ", sess.run('epoche:0'))
 ################################################################################################################
-        model_seg=Model_8n_sub1(self.number_classes,self.drop_conv,self.im_height)
+        model_seg=self.model_cls(self.number_classes,self.drop_conv,self.im_height)
         # Softmax and cross-entropy to determine the loss
 
         # Reduce the sum of all errors. This will sum up all the
@@ -236,7 +236,7 @@ class Solver_reim_cm:
 
 
         # Training with adam optimizer.
-        optimizer = tf.keras.optimizers.Adam(self.learning_rate)
+        optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
         for i in range(self.num_epochs):
             # Count the steps manually
             start_idx=0
@@ -266,9 +266,11 @@ class Solver_reim_cm:
                     seg_logits, predictions = model_seg(self.Xtr_rgb[train_indices], training=True)
                     cross_entropies = tf.nn.softmax_cross_entropy_with_logits(self.Ytr_mask[train_indices],seg_logits)
                     loss = tf.reduce_sum(cross_entropies)
+                # tr_weights=model_seg.trainable_weights
                 grads=tape.gradient(loss, model_seg.trainable_weights)
                 optimizer.apply_gradients(zip(grads,model_seg.trainable_weights))
-                seg_pred, l2_in = model_seg(self.Xtr_rgb[train_indices])
+                seg_pred, l2_in = model_seg(self.Xtr_rgb[train_indices], training = False)
+                seg_pred = tf.argmax(seg_pred, 2)
                 train_prec, train_rec = self.__getAccuracy(self.Ytr_mask[train_indices],
                                                            seg_pred)  # precision and recall
                 i=i+1
@@ -289,8 +291,36 @@ class Solver_reim_cm:
             test_indices = np.arange(len(self.Xte_rgb))
             np.random.shuffle(test_indices)
             test_indices = test_indices[0:self.test_size]
-            seg_pred, l2_in = model_seg(self.Xte_rgb[test_indices])
+            seg_pred, l2_in = model_seg(self.Xte_rgb[test_indices], training = False)
+            seg_pred = tf.argmax(seg_pred, 2)
             precision, recall = self.__getAccuracy(self.Yte_mask[test_indices], seg_pred)
+
+
+            #####
+            np.random.shuffle(test_indices)
+            idx = test_indices[0]
+
+            # get the test rgb image and reshape it to [1, width, height, 3]
+            sample = self.Xte_rgb[idx:idx + 1]
+            sample = sample.reshape([1, sample.shape[1], sample.shape[2], sample.shape[3]])
+
+            # execute the test
+            prr, l2_test = model_seg(sample, training = False)
+            pr = np.array(l2_test)
+            pr = pr.reshape([-1, self.im_width]).astype(float)
+            pr = pr * 255
+            test_mask = self.Yte_mask[idx]
+            test_mask = test_mask[:, 1]
+            te = test_mask.reshape([-1, self.im_width]).astype(float)
+            te = te * 255
+
+            if self.step % 10 == 0:
+                if not os.path.exists(self.saver_log_folder + "render"):
+                    os.makedirs(self.saver_log_folder + "render")
+                file = self.saver_log_folder + "render/result_" + str(self.step) + ".png"
+                file2 = self.saver_log_folder + "render/result_rgb_" + str(self.step) + ".png"
+                cv2.imwrite(file, pr)
+            #####
             ## ---------------------------------------------------------------------------------
             # Save and test all 10 iterations
             #if i % 10 == 0:
@@ -300,7 +330,10 @@ class Solver_reim_cm:
                 # self.__sample_test(self.Xte_rgb, self.Xte_depth, self.Yte_mask, self.Yte_pose, sess)
 
             if not os.path.exists(self.saver_log_folder):
-                os.makedirs(self.saver_log_folder)
+                try:
+                    os.makedirs(self.saver_log_folder)
+                except OSError:
+                    print("Creation of the directory %s failed" % self.saver_log_folder)
 
             if (self.iter == 0 and self.cont == 0):
                 file = open(self.saver_log_folder + "seg_results.csv", "w")
@@ -318,11 +351,11 @@ class Solver_reim_cm:
             # file = open(self.saver_log_folder + "test_loss.csv", "a")
             # file_str = str(self.step) + "," + str(test_loss / self.im_width * self.im_height) + "," + str(
             #     test_pose_t_loss) + "," + str(test_pose_q_loss) + "\n"
-            # file.write(file_str)
+            # file.write(file_str)s
             # file.close()
 
             file = open(self.saver_log_folder + "train_loss.csv", "a")
-            file_str = str(self.step) + "," + str(average_loss) + "," + str(
+            file_str = str(self.step) + "," + str(float(average_loss)) + "," + str(
                 average_t_loss) + "," + str(average_q_loss) + "\n"
             file.write(file_str)
             file.close()
@@ -333,8 +366,8 @@ class Solver_reim_cm:
                 overall_recall) + "," + str(precision) + "," + str(
                 recall) + "\n"
             file.write(out)
-            if self.step % 10 ==0:
-                print("Step %d: loss = %.4f" % (self.step,loss))
+            # if self.step % 10 ==0:
+            print("Step %d: loss = %.4f" % (self.step,average_loss))
             # if (self.stage2 == True):
             #     file = open(self.saver_log_folder + "train_pose_results.csv", "a")
             #
@@ -352,210 +385,6 @@ class Solver_reim_cm:
         # save the last step
         # self.saver.save(sess, self.saver_log_folder + self.saver_log_file, global_step=self.step)
 
-    def __start_eval(self, Xte_rgb, Xte_depth, Yte_mask, Yte_pose):
-        """
-        Start the network evaluation.
-        :param Xte_rgb: (array) the rgb test dataset of size [N, width, height, 3]
-        :param Xte_depth: (array) the depth test dataset of size [N, width, height, 1]
-        :param Yte_mask: (array) the ground truth image mask of size [N, width, height, C]
-        :param Yte_pose: (array) the ground truth pose as (x, y, z, qx, qy, qz, qw)
-        :return:
-        """
-        # Check if a model has been restored.
-        if len(self.restore_from_file) == 0:
-            print("ERROR - Validation mode requires a restored model")
-            return
-
-        # run the test session
-        with tf.Session(graph=self.g) as sess:
-            tf.global_variables_initializer().run()
-
-            # Restore the graph
-            saver = tf.train.import_meta_graph(self.saver_log_folder + self.restore_from_file)
-            saver.restore(sess, tf.train.latest_checkpoint(self.saver_log_folder))
-            curr_epoch = sess.run('epoche:0')
-            print("Model restored at epoch ", curr_epoch)
-
-            # Check if the number of samples is equal
-            if Xte_rgb.shape[0] != Xte_depth.shape[0]:
-                print("ERROR - the number of RGB and depth samples must match for validation")
-                return
-
-            print("Start validation")
-            print("Num test samples {int(Xte_rgb.shape[0])}.")
-
-            # split the evaluation batch in small chunks
-            # Note that the evaluation images are not shuffled to keep them aligned with the input images
-            test_size = int(Xte_rgb.shape[0] / 4)
-            # test_size = int(Xte_rgb.shape[0])
-            validation_batch = zip(range(0, len(Xte_rgb), test_size), range(test_size, len(Xte_rgb) + 1, test_size))
-
-            overall_precision = 0
-            overall_recall = 0
-            overall_t_rms = 0
-            overall_q_rms = 0
-            average_loss = 0
-            average_t_loss = 0
-            average_q_loss = 0
-            i = 0
-
-            # run the evaluation
-            for start, end in validation_batch:
-                predict, prob, loss, t_loss, q_loss = self.__test_step(sess, Xte_rgb[start:end], Xte_depth[start:end],
-                                                                       Yte_mask[start:end], Yte_pose[start:end][:, 0:3],
-                                                                       Yte_pose[start:end][:, 3:7])
-
-                # get precision and recall for the first srage.
-                precision, recall = self.__getAccuracy(Yte_mask[start:end], predict, "precision_recall.csv",
-                                                       i * test_size)
-                print(
-                    "Batch {i}, seg. loss {loss / self.im_width*self.im_height}, seg. precison: {precision}, seg. recall: {recall}, pose t loss: {t_loss}, pose q loss: {q_loss}")
-
-                # get rms values for the second stage.
-                pr, pr_pose_t, pr_pose_q = self.__exec_sample_test(sess, Xte_rgb[start:end], Xte_depth[start:end],
-                                                                   Yte_mask[start:end], Yte_pose[start:end][:, 0:3],
-                                                                   Yte_pose[start:end][:, 3:7])
-                t_rms, t_all, q_mean, q_all = eval_pose_accuracy(Yte_pose[start:end][:, 0:3], pr_pose_t,
-                                                                 Yte_pose[start:end][:, 3:7], pr_pose_q)
-
-                # Write the pose data into a file. This file is for 3D Pose Eval, the 3D pose renderer.
-                write_data_for_3DPoseEval(self.saver_log_folder + "pose_eval_input.csv", Yte_pose[start:end][:, 0:3],
-                                          Yte_pose[start:end][:, 3:7], pr_pose_t, pr_pose_q, start)
-
-                # Renders the output for a random image.
-                self.__sample_test(Xte_rgb, Xte_depth, Yte_mask, Yte_pose, sess)
-
-                i = i + 1
-                overall_precision = overall_precision + precision
-                overall_recall = overall_recall + recall
-                average_loss = average_loss + (loss / self.im_width * self.im_height)
-                average_t_loss = average_t_loss + t_loss
-                average_q_loss = average_q_loss + q_loss
-                overall_t_rms = t_rms + overall_t_rms
-                overall_q_rms = overall_q_rms + q_mean
-
-            overall_precision = overall_precision / i
-            overall_recall = overall_recall / i
-            average_loss = average_loss / i
-            average_q_loss = average_q_loss / i
-            average_t_loss = average_t_loss / i
-            overall_t_rms = overall_t_rms / i
-            overall_q_rms = overall_q_rms / i
-
-            print(
-                "Final results: \nseg. loss {average_loss}, seg. precison: {overall_precision}, seg. recall: {overall_recall}")
-            print(
-                "pose t loss: {average_t_loss}, pose q loss {average_q_loss}, t RMS: {overall_t_rms}, q mean: {overall_q_rms}")
-
-            write_report(self.saver_log_folder + "evaluation_rep.csv", curr_epoch, average_loss, overall_precision,
-                         overall_recall, average_t_loss, average_q_loss, overall_t_rms, overall_q_rms)
-
-    def __train_step(self, sess, rgb_batch, depth_batch, mask_batch, pose_t_batch, pose_q_batch, p_keep_conv,
-                     p_keep_hidden):
-        """
-        Execute one training step for the entire graph
-        :param sess: (tf node) reference to the current tensorflow session
-        :param rgb_batch: (array) the rgb training batch as array of size [N, width, height, 3]
-        :param depth_batch: (array) the depth image batch as array of size [N, width, height, 1]
-        :param mask_batch: (array) the ground truth mask as array of size [N, width, height, 1]
-        :param pose_t_batch: (array) the ground truth pose given by (x, y, z) as array of size [N, 3]
-        :param pose_q_batch: (array) the ground truth orientation given by (qx, qy, qz, qw) as array of size [N, 4]
-        :param p_keep_conv: (float) drouput for the convolutional part, probability to keep the values
-        :param p_keep_hidden: (float) dropout for the regression part, probability to keep the values.
-        :return:
-        """
-        test_pose_t_loss = 0
-        test_pose_q_loss = 0
-        pr_pose_t = 0;
-        pr_pose_q = 0
-        test_predict = 0;
-        test_prob = 0;
-        test_loss = 0;
-        # Train the first stage.
-        if self.stage2 == False:
-            sess.run([self.train_fcn, self.prediction,
-                      self.probabilities,
-                      self.cross_entropy_sum],
-                     feed_dict={self.pl_X_rgb: rgb_batch,
-                                self.pl_Y_mask: mask_batch,
-                                self.pl_keep_conv: p_keep_conv,
-                                self.pl_keep_hidden: p_keep_hidden,
-                                self.phase_train: self.__norm})
-
-        # Generate the output from the first stage. These are the images with argmax(activations) applied
-        output, test_predict, test_prob, test_loss = sess.run([self.fcn_predictions, self.prediction,
-                                                               self.probabilities, self.cross_entropy_sum],
-                                                              feed_dict={self.pl_X_rgb: rgb_batch,
-                                                                         self.pl_Y_mask: mask_batch,
-                                                                         self.pl_keep_conv: p_keep_conv,
-                                                                         self.pl_keep_hidden: p_keep_hidden,
-                                                                         self.phase_train: False})
-
-        # Train the second stage.
-        if self.stage2 == True:
-            pose_t_gradients, pose_q_gradients, test_pose_t_loss, test_pose_q_loss, pr_pose_t, pr_pose_q = sess.run(
-                [self.train_pose_t,
-                 self.train_pose_q,
-                 self.pose_loss_t,
-                 self.pose_loss_q,
-                 self.Y_pre_pose_t,
-                 self.Y_pre_pose_q],
-                feed_dict={self.pl_X_pred: output,
-                           self.pl_X_depth: depth_batch,
-                           self.pl_Y_pose_t: pose_t_batch,
-                           self.pl_Y_pose_q: pose_q_batch,
-                           self.pl_keep_conv: p_keep_conv,
-                           self.pl_keep_hidden: p_keep_hidden,
-                           self.phase_train: self.__norm})
-
-        return test_predict, test_prob, test_loss, test_pose_t_loss, test_pose_q_loss, pr_pose_t, pr_pose_q
-
-    def __test_step(self, sess, Xte_rgb, Xte_depth, Yte_mask, Yte_pose_t, Yte_pose_q):
-        """
-        Test the trained network.
-        All dropouts are set to 1.0
-        :param sess: (tf node) reference to the current tensorflow session
-        :param Xte_rgb: (array) the rgb test batch as array of size [N, width, height, 3]
-        :param Xte_depth: (array) the depth image batch as array of size [N, width, height, 1]
-        :param Yte_mask: (array) the ground truth mask as array of size [N, width, height, C-1]
-        :param Yte_pose_t: the ground truth pose given as translation (x, y, z) as array of size [N, 3]
-        :param Yte_pose_q: the ground truth orientation as quaternion (qx, qy, qz, qw) as array of size [N, 4]
-        :return: test_predict (float) - the class predictions
-                 test_prob (float) - the class probabilities
-                 test_loss (float) - the test loss. Note that this is the sum of all losses
-                 test_pose_t_loss (float) - the translation prediction average loss
-                 test_pose_q_loss (float) - the orientation prediction average loss.
-        """
-
-        # Test the fully connected network, stage 1
-        test_predict, test_prob, test_loss = sess.run([self.prediction,
-                                                       self.probabilities,
-                                                       self.cross_entropy_sum],
-                                                      feed_dict={self.pl_X_rgb: Xte_rgb,
-                                                                 self.pl_Y_mask: Yte_mask,
-                                                                 self.pl_keep_conv: 1.0,
-                                                                 self.pl_keep_hidden: 1.0,
-                                                                 self.phase_train: False})
-
-        # Generate the output from the first stage. These are the images with argmax(activations) applied
-        output = sess.run(self.fcn_predictions, feed_dict={self.pl_X_rgb: Xte_rgb,
-                                                           self.pl_Y_mask: Yte_mask,
-                                                           self.pl_keep_conv: 1.0,
-                                                           self.pl_keep_hidden: 1.0,
-                                                           self.phase_train: False})
-
-        # Generate pose output.
-        test_pose_t_loss, test_pose_q_loss, test_pose_t, test_pose_q = sess.run([self.pose_loss_t, self.pose_loss_q,
-                                                                                 self.Y_pre_pose_t, self.Y_pre_pose_q],
-                                                                                feed_dict={self.pl_X_pred: output,
-                                                                                           self.pl_X_depth: Xte_depth,
-                                                                                           self.pl_Y_pose_t: Yte_pose_t,
-                                                                                           self.pl_Y_pose_q: Yte_pose_q,
-                                                                                           self.pl_keep_conv: 1.0,
-                                                                                           self.pl_keep_hidden: 1.0,
-                                                                                           self.phase_train: False})
-
-        return test_predict, test_prob, test_loss, test_pose_t_loss, test_pose_q_loss, test_pose_t, test_pose_q
 
     def __getAccuracy(self, Y, Ypr, validation="", start_index=0):
         """
@@ -568,7 +397,8 @@ class Solver_reim_cm:
         :param start_index: (int), for the file writer; a batch indes that indicates the number of the current batch.
         :return: the precision (float) and recall (float) values.
         """
-        pr = Ypr.reshape([-1, self.im_width, self.im_height]).astype(float)
+        Ypr_arr=np.array(Ypr)
+        pr = Ypr_arr.reshape([-1, self.im_width, self.im_height]).astype(float)
         pr = pr * 255
 
         y = Y[:, :, 1]  # this is the background mask. But the bunny model is = 0 here.
@@ -643,106 +473,3 @@ class Solver_reim_cm:
         # plt.show()
 
         return precision, recall
-
-    def __sample_test(self, Xte, Xte_depth, Yte, Yte_pose, sess):
-        """
-        Test the network using ONE random image. The function will generate a visual output and
-        store the data into a file.
-        :param Xte: the RGB test dataset of size [N, width, height, 3]
-        :param Xte_depth: the depth images test dataset of size [N, width, height, 3]
-        :param Yte: the ground truth mask  of size [N, width, height, 1]
-        :param Yte_pose: the ground truth pose as (x, y, z, qx, qy, qz, qw)
-        :param sess: a reference to the current session.
-        :return:
-        """
-
-        # get a random number
-        file_index = self.epoch.eval()
-        test_indices = np.arange(len(Xte))
-        np.random.shuffle(test_indices)
-        idx = test_indices[0]
-
-        # get the test rgb image and reshape it to [1, width, height, 3]
-        sample = Xte[idx:idx + 1]
-        sample = sample.reshape([1, sample.shape[1], sample.shape[2], sample.shape[3]])
-
-        # get the test depth image and reshape it to [1, width, height, 1]
-        sample_depth = Xte_depth[idx:idx + 1]
-        sample_depth = sample_depth.reshape([1, sample_depth.shape[1], sample_depth.shape[2], sample_depth.shape[3]])
-
-        # get the test mask  and reshape it to [1, width, height, 1]
-        good = Yte[idx:idx + 1]
-        good = good.reshape([1, good.shape[1], good.shape[2]])
-
-        pose_t = Yte_pose[idx:idx + 1][:, 0:3]
-        pose_t = pose_t.reshape([1, pose_t.shape[1]])
-
-        pose_q = Yte_pose[idx:idx + 1][:, 3:7]
-        pose_q = pose_q.reshape([1, pose_q.shape[1]])
-
-        # execute the test
-        pr, pr_pose_t, pr_pose_q = self.__exec_sample_test(sess, sample, sample_depth, good, pose_t, pose_q)
-
-        pr = pr.reshape([-1, self.im_width]).astype(float)
-        pr = pr * 255
-        test_mask = Yte[idx]
-        test_mask = test_mask[:, 1]
-        te = test_mask.reshape([-1, self.im_width]).astype(float)
-        te = te * 255
-
-        # vis = np.concatenate((te, pr), axis=1)
-        # if self.show_sample:
-        #    cv2.imshow("result", vis)
-        #    cv2.imshow("testimage", Xte[idx])
-        #    if file_index == 0:
-        #        cv2.moveWindow('result', 50, 150)
-        #        cv2.moveWindow('testimage', 50, 260)
-        # cv2.imshow("outcome", pr)
-        #    cv2.waitKey(1)
-        if self.step % 10 == 0:
-            if not os.path.exists(self.saver_log_folder + "render"):
-                os.makedirs(self.saver_log_folder + "render")
-            file = self.saver_log_folder + "render/result_" + str(file_index) + ".png"
-            file2 = self.saver_log_folder + "render/result_rgb_" + str(file_index) + ".png"
-            cv2.imwrite(file, pr)
-            # cv2.imwrite(file2, Xte[idx])
-            # file_index = file_index + 1
-
-    def __exec_sample_test(self, sess, sample, sample_depth, good, pose_t, pose_q):
-        """
-        Execute the sample test.
-        :param sess:
-        :param sample:
-        :param sample_depth:
-        :param good:
-        :param pose_t:
-        :param pose_q:
-        :return:
-        """
-
-        pred = tf.argmax(self.Y_pre_logits, 2)
-
-        pr = sess.run(pred,
-                      feed_dict={self.pl_X_rgb: sample,
-                                 self.pl_Y_mask: good,
-                                 self.pl_keep_conv: 1.0,
-                                 self.pl_keep_hidden: 1.0,
-                                 self.phase_train: False})
-
-        output = sess.run(self.fcn_predictions, feed_dict={self.pl_X_rgb: sample,
-                                                           self.pl_Y_mask: good,
-                                                           self.pl_keep_conv: 1.0,
-                                                           self.pl_keep_hidden: 1.0,
-                                                           self.phase_train: False})
-
-        pr_pose_t, pr_pose_q = sess.run([self.Y_pre_pose_t, self.Y_pre_pose_q],
-                                        feed_dict={self.pl_X_pred: output,
-                                                   self.pl_X_depth: sample_depth,
-                                                   self.pl_Y_pose_t: pose_t,
-                                                   self.pl_Y_pose_q: pose_q,
-                                                   self.pl_keep_conv: 1.0,
-                                                   self.pl_keep_hidden: 1.0,
-                                                   self.phase_train: False})
-
-        return pr, pr_pose_t, pr_pose_q
-

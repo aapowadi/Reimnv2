@@ -1,5 +1,7 @@
+import sys
+sys.dont_write_bytecode = True
 from Experiment import *
-from ExpList_syn import *
+from ExpList_mdl_sub import *
 import sys, getopt
 
 def main(argv):

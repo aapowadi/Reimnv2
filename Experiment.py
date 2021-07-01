@@ -1,6 +1,6 @@
 import sys
 sys.dont_write_bytecode = True
-from solvers.Solver2StageRGBD_6DoF import *
+from solvers.Solver_reim_cm import *
 from models.filetools import *
 from solvers.tools.quattool import *
 import tensorflow as tf
@@ -61,13 +61,13 @@ class Experiment:
         # Synthetic data
         if self._descrip["proof"]:
             Xtr_rgb0 = loaded_data[0]
-            Xtr_rgb = Xtr_rgb0[510:521]
+            Xtr_rgb = Xtr_rgb0[510:638]
             Xtr_depth0 = loaded_data[1]
-            Xtr_depth = Xtr_depth0[510:521]
+            Xtr_depth = Xtr_depth0[510:638]
             Ytr_mask0 = loaded_data[2]
-            Ytr_mask = Ytr_mask0[510:521]
+            Ytr_mask = Ytr_mask0[510:638]
             Ytr_pose0 = loaded_data[3]  # [:,0]
-            Ytr_pose = Ytr_pose0[510:521]
+            Ytr_pose = Ytr_pose0[510:638]
 
         else:
             Xtr_rgb = loaded_data[0]
@@ -93,13 +93,13 @@ class Experiment:
         # Ytr_pose[:,[3,6]] = Ytr_pose[:,[6,3]]
         if self._descrip["proof"]:
             Xte_rgb0 = loaded_data[0]
-            Xte_rgb = Xte_rgb0[510:520]
+            Xte_rgb = Xte_rgb0[510:638]
             Xte_depth0 = loaded_data[1]
-            Xte_depth =Xte_depth0[510:520]
+            Xte_depth =Xte_depth0[510:638]
             Yte_mask0 = loaded_data[2]
-            Yte_mask=Yte_mask0[510:520]
+            Yte_mask=Yte_mask0[510:638]
             Yte_pose0 = loaded_data[3]  # [:,0]
-            Yte_pose= Yte_pose0[510:520]
+            Yte_pose= Yte_pose0[510:638]
 
         else:
             Xte_rgb = loaded_data[4]
