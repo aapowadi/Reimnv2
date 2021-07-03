@@ -8,13 +8,13 @@ from tensorflow.keras.layers import UpSampling2D
 from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import Dropout
 import tensorflow as tf
-class Model_8n_sub_tst(keras.Model):
+class Model_8n_sub1(keras.Model):
     """
     Model sub-class
     """
     def __init__(self, number_classes=2,drop_conv=0, img_height=128,chanDim=-1):
         #Call the parent constructor
-        super(Model_8n_sub_tst,self).__init__()
+        super(Model_8n_sub1,self).__init__()
         self.number_of_classes = number_classes
         self.drop_conv = drop_conv
         self.img_height = img_height
