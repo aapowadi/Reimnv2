@@ -8,13 +8,13 @@ from tensorflow.keras.layers import UpSampling2D
 from tensorflow.keras.layers import Activation
 from tensorflow.keras.layers import Dropout
 import tensorflow as tf
-class Model_8n_sub1(keras.Model):
+class Model_8n_sub_tst(keras.Model):
     """
     Model sub-class
     """
     def __init__(self, number_classes=2,drop_conv=0, img_height=128,chanDim=-1):
         #Call the parent constructor
-        super(Model_8n_sub1,self).__init__()
+        super(Model_8n_sub_tst,self).__init__()
         self.number_of_classes = number_classes
         self.drop_conv = drop_conv
         self.img_height = img_height
@@ -67,56 +67,48 @@ class Model_8n_sub1(keras.Model):
     def call(self,inputs,training=None):
         """
         """
-    # Layer 1
+        # Layer 1
         x=self.conv1(inputs)
         if training:
             x=self.bn1(x)
-            x = self.act1(x)
-        else:
-            x = self.act1(x)
-        x=self.pool1(x)
-        x=self.drop1
-    # Layer 2
+        x = self.act1(x)
+        x = self.pool1(x)
+        x = self.drop1(x)
+        # Layer 2
         x = self.conv2(x)
         if training:
-            x=self.bn2(x)
-            x = self.act2(x)
-        else:
+            x = self.bn2(x)
             x = self.act2(x)
         x = self.pool2(x)
-        x = self.drop2
-    # Layer 3
+        x = self.drop2(x)
+        # Layer 3
         x = self.conv3(x)
         if training:
-            x=self.bn3(x)
-            x = self.act3(x)
-        else:
+            x = self.bn3(x)
             x = self.act3(x)
         x = self.pool3(x)
-        x=self.drop3
-    # Layer 4
+        x = self.drop3(x)
+        # Layer 4
         x = self.conv4(x)
         if training:
-            x=self.bn4(x)
-            x = self.act4(x)
-        else:
+            x = self.bn4(x)
             x = self.act4(x)
         x = self.pool4(x)
-        x = self.drop4
-    # Layer 5
-        x = UpSampling2D((2, 2),interpolation="bilinear")(x)
+        x = self.drop4(x)
+        # Layer 5
+        x = UpSampling2D((2, 2), interpolation="bilinear")(x)
         x = self.conv5u(x)
-    # Layer 6
-        x = UpSampling2D((2, 2),interpolation="bilinear")(x)
+        # Layer 6
+        x = UpSampling2D((2, 2), interpolation="bilinear")(x)
         x = self.conv6u(x)
-    # Layer 7
-        x = UpSampling2D((2, 2),interpolation="bilinear")(x)
+        # Layer 7
+        x = UpSampling2D((2,2),interpolation="bilinear")(x)
         x = self.conv7u(x)
-    # Layer 8
+        # Layer 8
         x = UpSampling2D((2, 2),interpolation="bilinear")(x)
         x = self.conv8u(x)
         seg_logits= tf.reshape(tensor=x,shape=(-1, self.img_height * self.img_height, self.number_of_classes))
-    ## First to second stage transition
+        ## First to second stage transition
         result_max = tf.argmax(x, 3)  # max result along axis 3
         result_max_labels = tf.equal(result_max, 1)  # object class is 0
         result_max = tf.cast(result_max_labels, tf.float32)

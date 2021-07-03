@@ -69,9 +69,9 @@ class Model_8n_sub_tst(keras.Model):
         """
         # Layer 1
         x=self.conv1(inputs)
-        x=self.act1(x)
         if training:
             x=self.bn1(x)
+        x = self.act1(x)
         x=self.pool1(x)
         if training:
             x=self.drop1(x)
