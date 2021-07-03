@@ -18,33 +18,29 @@ class Model_8n_sub1(keras.Model):
         self.number_of_classes = number_classes
         self.drop_conv = drop_conv
         self.img_height = img_height
-        # Encoder
+    # Encoder
         # Layer 1
         self.conv1=Conv2D(32,(3,3),(1,1),padding="same")
         self.act1 = Activation("relu")
         self.bn1=BatchNormalization(axis=chanDim)
         self.pool1=MaxPooling2D(pool_size=(2,2))
-        self.drop1=Dropout(self.drop_conv)
         # Layer 2
         self.conv2 = Conv2D(64, (3, 3), (1, 1), padding="same")
         self.act2 = Activation("relu")
         self.bn2 = BatchNormalization(axis=chanDim)
         self.pool2 = MaxPooling2D(pool_size=(2, 2))
-        self.drop2 = Dropout(self.drop_conv)
         # Layer 3
         self.conv3 = Conv2D(128, (3, 3), (1, 1), padding="same")
         self.act3 = Activation("relu")
         self.bn3 = BatchNormalization(axis=chanDim)
         self.pool3 = MaxPooling2D(pool_size=(2, 2))
-        self.drop3 = Dropout(self.drop_conv)
         # Layer 4
         self.conv4 = Conv2D(256, (3, 3), (1, 1), padding="same")
         self.act4 = Activation("relu")
         self.bn4 = BatchNormalization(axis=chanDim)
         self.pool4 = MaxPooling2D(pool_size=(2, 2))
-        self.drop4 = Dropout(self.drop_conv)
 
-        # Decoder
+    # Decoder
         # Layer 5
         self.up_sam5 = Conv2DTranspose(256,(1,1),(2,2))
         self.conv5u = Conv2D(128,(1,1),padding="same")
