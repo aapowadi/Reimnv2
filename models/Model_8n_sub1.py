@@ -78,21 +78,21 @@ class Model_8n_sub1(keras.Model):
         x = self.conv2(x)
         if training:
             x = self.bn2(x)
-            x = self.act2(x)
+        x = self.act2(x)
         x = self.pool2(x)
         x = self.drop2(x)
         # Layer 3
         x = self.conv3(x)
         if training:
             x = self.bn3(x)
-            x = self.act3(x)
+        x = self.act3(x)
         x = self.pool3(x)
         x = self.drop3(x)
         # Layer 4
         x = self.conv4(x)
         if training:
             x = self.bn4(x)
-            x = self.act4(x)
+        x = self.act4(x)
         x = self.pool4(x)
         x = self.drop4(x)
         # Layer 5
