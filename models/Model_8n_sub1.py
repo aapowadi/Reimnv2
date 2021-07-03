@@ -75,7 +75,7 @@ class Model_8n_sub1(keras.Model):
         else:
             x = self.act1(x)
         x=self.pool1(x)
-        x=Dropout(self.drop_conv)
+        x=self.drop1
     # Layer 2
         x = self.conv2(x)
         if training:
@@ -84,7 +84,7 @@ class Model_8n_sub1(keras.Model):
         else:
             x = self.act2(x)
         x = self.pool2(x)
-        x = Dropout(self.drop_conv)
+        x = self.drop2
     # Layer 3
         x = self.conv3(x)
         if training:
@@ -93,7 +93,7 @@ class Model_8n_sub1(keras.Model):
         else:
             x = self.act3(x)
         x = self.pool3(x)
-        x = Dropout(self.drop_conv)
+        x=self.drop3
     # Layer 4
         x = self.conv4(x)
         if training:
@@ -102,7 +102,7 @@ class Model_8n_sub1(keras.Model):
         else:
             x = self.act4(x)
         x = self.pool4(x)
-        x = Dropout(self.drop_conv)
+        x = self.drop4
     # Layer 5
         x = UpSampling2D((2, 2),interpolation="bilinear")(x)
         x = self.conv5u(x)
