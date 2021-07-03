@@ -228,7 +228,7 @@ class Solver_reim_cm:
             #     saver.restore(sess, tf.train.latest_checkpoint(self.saver_log_folder + "../"))
             #     print("Model restored at epoche ", sess.run('epoche:0'))
 ################################################################################################################
-        model_seg=self.model_cls(self.number_classes,self.drop_conv,self.im_height)
+        model_seg=self.model_cls(self.number_classes,self.im_height)
         # Softmax and cross-entropy to determine the loss
 
         # Reduce the sum of all errors. This will sum up all the
@@ -263,13 +263,13 @@ class Solver_reim_cm:
             for start, end in training_batch:
                 with tf.GradientTape() as tape:
                     train_indices = shuffled[start:end]
-                    seg_logits, predictions = model_seg(self.Xtr_rgb[train_indices], training=True)
+                    seg_logits, predictions = model_seg(self.Xtr_rgb[train_indices],self.drop_conv,training=True)
                     cross_entropies = tf.nn.softmax_cross_entropy_with_logits(self.Ytr_mask[train_indices],seg_logits)
                     loss = tf.reduce_sum(cross_entropies)
                 # tr_weights=model_seg.trainable_weights
                 grads=tape.gradient(loss, model_seg.trainable_weights)
                 optimizer.apply_gradients(zip(grads,model_seg.trainable_weights))
-                seg_pred, l2_in = model_seg(self.Xtr_rgb[train_indices], training = False)
+                seg_pred, l2_in = model_seg(self.Xtr_rgb[train_indices], 0)
                 seg_pred = tf.argmax(seg_pred, 2)
                 train_prec, train_rec = self.__getAccuracy(self.Ytr_mask[train_indices],
                                                            seg_pred)  # precision and recall
@@ -291,7 +291,7 @@ class Solver_reim_cm:
             test_indices = np.arange(len(self.Xte_rgb))
             np.random.shuffle(test_indices)
             test_indices = test_indices[0:self.test_size]
-            seg_pred, l2_in = model_seg(self.Xte_rgb[test_indices], training = False)
+            seg_pred, l2_in = model_seg(self.Xte_rgb[test_indices], 0)
             seg_pred = tf.argmax(seg_pred, 2)
             precision, recall = self.__getAccuracy(self.Yte_mask[test_indices], seg_pred)
 
@@ -305,7 +305,7 @@ class Solver_reim_cm:
             sample = sample.reshape([1, sample.shape[1], sample.shape[2], sample.shape[3]])
 
             # execute the test
-            prr, l2_test = model_seg(sample, training = False)
+            prr, l2_test = model_seg(sample, 0)
             pr = np.array(l2_test)
             pr = pr.reshape([-1, self.im_width]).astype(float)
             pr = pr * 255

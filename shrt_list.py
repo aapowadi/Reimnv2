@@ -18,7 +18,7 @@ def exs(name):
     ex_test_valid["batch_size"] = 128
     ex_test_valid["num_iterations"] = 100
     ex_test_valid["debug_output"] = True
-    ex_test_valid["log_path"] = "./log_syn/ex_test/"
+    ex_test_valid["log_path"] = "./log_shrt/ex_test/"
     ex_test_valid["log_file"] = "plx64"
     ex_test_valid["train"] = False
     ex_test_valid["eval"] = True
@@ -37,10 +37,10 @@ def exs(name):
     ex_test["solver"] = Solver_reim_cm
     ex_test["model"] = Model_8n_sub_tst
     ex_test["batch_size"] = 128
-    ex_test["learning_rate"] = 0.001
+    ex_test["learning_rate"] = 0.1
     ex_test["num_iterations"] = 100
     ex_test["debug_output"] = True
-    ex_test["log_path"] = "./log_syn/ex_test/"
+    ex_test["log_path"] = "./log_shrt/ex_test/"
     ex_test["log_file"] = "plx64"
     ex_test["train"] = True
     ex_test["eval"] = False
@@ -65,7 +65,7 @@ def exs(name):
     ex1n_valid["learning_rate"] = 0.001
     ex1n_valid["num_iterations"] = 700
     ex1n_valid["debug_output"] = True
-    ex1n_valid["log_path"] = "./log_syn/ex1n/"
+    ex1n_valid["log_path"] = "./log_shrt/ex1n/"
     ex1n_valid["log_file"] = "plx64"
     ex1n_valid["train"] = False
     ex1n_valid["eval"] = True
@@ -86,7 +86,7 @@ def exs(name):
     ex1n["learning_rate"] = 0.01
     ex1n["num_iterations"] = 100
     ex1n["debug_output"] = True
-    ex1n["log_path"] = "./log_syn/ex1n/"
+    ex1n["log_path"] = "./log_shrt/ex1n/"
     ex1n["log_file"] = "plx64"
     ex1n["train"] = True
     ex1n["eval"] = False
@@ -111,7 +111,7 @@ def exs(name):
     ex2n_valid["learning_rate"] = 0.001
     ex2n_valid["num_iterations"] = 100
     ex2n_valid["debug_output"] = True
-    ex2n_valid["log_path"] = "./log_syn/ex2n/"
+    ex2n_valid["log_path"] = "./log_shrt/ex2n/"
     ex2n_valid["log_file"] = "plx64"
     ex2n_valid["train"] = False
     ex2n_valid["eval"] = True
@@ -132,7 +132,7 @@ def exs(name):
     ex2n["learning_rate"] = 0.1
     ex2n["num_iterations"] = 100
     ex2n["debug_output"] = True
-    ex2n["log_path"] = "./log_syn/ex2n/"
+    ex2n["log_path"] = "./log_shrt/ex2n/"
     ex2n["log_file"] = "plx64"
     ex2n["train"] = True
     ex2n["eval"] = False
@@ -157,7 +157,7 @@ def exs(name):
     ex3n_valid["learning_rate"] = 0.001
     ex3n_valid["num_iterations"] = 100
     ex3n_valid["debug_output"] = True
-    ex3n_valid["log_path"] = "./log_syn/ex3n/"
+    ex3n_valid["log_path"] = "./log_shrt/ex3n/"
     ex3n_valid["log_file"] = "plx64"
     ex3n_valid["train"] = False
     ex3n_valid["eval"] = True
@@ -178,7 +178,7 @@ def exs(name):
     ex3n["learning_rate"] = 0.001
     ex3n["num_iterations"] = 100
     ex3n["debug_output"] = True
-    ex3n["log_path"] = "./log_syn/ex3n/"
+    ex3n["log_path"] = "./log_shrt/ex3n/"
     ex3n["log_file"] = "plx64"
     ex3n["train"] = True
     ex3n["eval"] = False
@@ -203,7 +203,7 @@ def exs(name):
     ex4n_valid["learning_rate"] = 0.004
     ex4n_valid["num_iterations"] = 100
     ex4n_valid["debug_output"] = True
-    ex4n_valid["log_path"] = "./log_syn/ex4n/"
+    ex4n_valid["log_path"] = "./log_shrt/ex4n/"
     ex4n_valid["log_file"] = "plx64"
     ex4n_valid["train"] = False
     ex4n_valid["eval"] = True
@@ -224,7 +224,7 @@ def exs(name):
     ex4n["learning_rate"] = 0.004
     ex4n["num_iterations"] = 100
     ex4n["debug_output"] = True
-    ex4n["log_path"] = "./log_syn/ex4n/"
+    ex4n["log_path"] = "./log_shrt/ex4n/"
     ex4n["log_file"] = "plx64"
     ex4n["train"] = True
     ex4n["eval"] = False
@@ -249,7 +249,7 @@ def exs(name):
     ex5n_valid["learning_rate"] = 0.005
     ex5n_valid["num_iterations"] = 100
     ex5n_valid["debug_output"] = True
-    ex5n_valid["log_path"] = "./log_syn/ex5n/"
+    ex5n_valid["log_path"] = "./log_shrt/ex5n/"
     ex5n_valid["log_file"] = "plx64"
     ex5n_valid["train"] = False
     ex5n_valid["eval"] = True
@@ -270,7 +270,7 @@ def exs(name):
     ex5n["learning_rate"] = 0.005
     ex5n["num_iterations"] = 100
     ex5n["debug_output"] = True
-    ex5n["log_path"] = "./log_syn/ex5n/"
+    ex5n["log_path"] = "./log_shrt/ex5n/"
     ex5n["log_file"] = "plx64"
     ex5n["train"] = True
     ex5n["eval"] = False
@@ -295,7 +295,7 @@ def exs(name):
     ex6n_valid["learning_rate"] = 0.006
     ex6n_valid["num_iterations"] = 100
     ex6n_valid["debug_output"] = True
-    ex6n_valid["log_path"] = "./log_syn/ex6n/"
+    ex6n_valid["log_path"] = "./log_shrt/ex6n/"
     ex6n_valid["log_file"] = "plx64"
     ex6n_valid["train"] = False
     ex6n_valid["eval"] = True
@@ -316,7 +316,7 @@ def exs(name):
     ex6n["learning_rate"] = 0.006
     ex6n["num_iterations"] = 100
     ex6n["debug_output"] = True
-    ex6n["log_path"] = "./log_syn/ex6n/"
+    ex6n["log_path"] = "./log_shrt/ex6n/"
     ex6n["log_file"] = "plx64"
     ex6n["train"] = True
     ex6n["eval"] = False
@@ -341,7 +341,7 @@ def exs(name):
     ex7n_valid["learning_rate"] = 0.007
     ex7n_valid["num_iterations"] = 100
     ex7n_valid["debug_output"] = True
-    ex7n_valid["log_path"] = "./log_syn/ex7n/"
+    ex7n_valid["log_path"] = "./log_shrt/ex7n/"
     ex7n_valid["log_file"] = "plx64"
     ex7n_valid["train"] = False
     ex7n_valid["eval"] = True
@@ -362,7 +362,7 @@ def exs(name):
     ex7n["learning_rate"] = 0.007
     ex7n["num_iterations"] = 100
     ex7n["debug_output"] = True
-    ex7n["log_path"] = "./log_syn/ex7n/"
+    ex7n["log_path"] = "./log_shrt/ex7n/"
     ex7n["log_file"] = "plx64"
     ex7n["train"] = True
     ex7n["eval"] = False
