@@ -12,37 +12,25 @@ class Model_8n_sub_tst(keras.Model):
     """
     Model sub-class
     """
-    def __init__(self, number_classes=2,drop_conv=0, img_height=128,chanDim=-1):
+    def __init__(self, number_classes=2,img_height=128,chanDim=-1):
         #Call the parent constructor
         super(Model_8n_sub_tst,self).__init__()
         self.number_of_classes = number_classes
-        self.drop_conv = drop_conv
         self.img_height = img_height
         # Encoder
         # Layer 1
         self.conv1=Conv2D(32,(3,3),(1,1),padding="same")
-        self.act1 = Activation("relu")
         self.bn1=BatchNormalization(axis=chanDim)
-        self.pool1=MaxPooling2D(pool_size=(2,2))
-        self.drop1=Dropout(self.drop_conv)
         # Layer 2
         self.conv2 = Conv2D(64, (3, 3), (1, 1), padding="same")
-        self.act2 = Activation("relu")
         self.bn2 = BatchNormalization(axis=chanDim)
-        self.pool2 = MaxPooling2D(pool_size=(2, 2))
-        self.drop2 = Dropout(self.drop_conv)
         # Layer 3
         self.conv3 = Conv2D(128, (3, 3), (1, 1), padding="same")
-        self.act3 = Activation("relu")
         self.bn3 = BatchNormalization(axis=chanDim)
-        self.pool3 = MaxPooling2D(pool_size=(2, 2))
-        self.drop3 = Dropout(self.drop_conv)
         # Layer 4
         self.conv4 = Conv2D(256, (3, 3), (1, 1), padding="same")
-        self.act4 = Activation("relu")
         self.bn4 = BatchNormalization(axis=chanDim)
-        self.pool4 = MaxPooling2D(pool_size=(2, 2))
-        self.drop4 = Dropout(self.drop_conv)
+
 
         # Decoder
         # Layer 5
@@ -64,23 +52,23 @@ class Model_8n_sub_tst(keras.Model):
         ##----------------------------------------------------------------------------------------
 
 
-    def call(self,inputs,training=None):
+    def call(self,inputs,drop_conv,training=False):
         """
         """
         # Layer 1
         x=self.conv1(inputs)
         if training:
             x=self.bn1(x)
-        x = self.act1(x)
-        x=self.pool1(x)
-        x=self.drop1(x)
+        x = Activation("relu")(x)
+        x = MaxPooling2D(pool_size=(2,2))(x)
+        x = Dropout(drop_conv)(x)
         # Layer 2
         x = self.conv2(x)
         if training:
             x = self.bn2(x)
-        x = self.act2(x)
-        x = self.pool2(x)
-        x = self.drop2(x)
+        x = Activation("relu")(x)
+        x = MaxPooling2D(pool_size=(2,2))(x)
+        x = Dropout(drop_conv)(x)
         # Layer 7
         x = UpSampling2D((2,2),interpolation="bilinear")(x)
         x = self.conv7u(x)
