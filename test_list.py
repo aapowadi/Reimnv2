@@ -36,7 +36,7 @@ def exs(name):
     ex_test["train_dataset"] = "../../datasets/tr-128-40k.pickle"
     ex_test["eval_dataset"] = "../../datasets/tr-128-40k.pickle"
     ex_test["solver"] = Solver_reim_cm
-    ex_test["model"] = Model_8n_sub_tst
+    ex_test["model"] = Model_8n_sub1
     ex_test["batch_size"] = 128
     ex_test["learning_rate"] = 0.001
     ex_test["num_iterations"] = 100

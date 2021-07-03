@@ -73,16 +73,14 @@ class Model_8n_sub_tst(keras.Model):
             x=self.bn1(x)
         x = self.act1(x)
         x=self.pool1(x)
-        if training:
-            x=self.drop1(x)
+        x=self.drop1(x)
         # Layer 2
         x = self.conv2(x)
-        x = self.act2(x)
         if training:
             x = self.bn2(x)
+        x = self.act2(x)
         x = self.pool2(x)
-        if training:
-            x = self.drop2(x)
+        x = self.drop2(x)
         # Layer 7
         x = UpSampling2D((2,2),interpolation="bilinear")(x)
         x = self.conv7u(x)
