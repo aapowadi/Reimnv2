@@ -67,52 +67,56 @@ class Model_8n_sub1(keras.Model):
     def call(self,inputs,training=None):
         """
         """
-        # Layer 1
+    # Layer 1
         x=self.conv1(inputs)
-        x=self.act1(x)
         if training:
             x=self.bn1(x)
+            x = self.act1(x)
+        else:
+            x = self.act1(x)
         x=self.pool1(x)
-        if training:
-            x=self.drop1(x)
-        # Layer 2
+        x=Dropout(self.drop_conv)
+    # Layer 2
         x = self.conv2(x)
-        x = self.act2(x)
         if training:
             x=self.bn2(x)
+            x = self.act2(x)
+        else:
+            x = self.act2(x)
         x = self.pool2(x)
-        if training:
-            x = self.drop2(x)
-        # Layer 3
+        x = Dropout(self.drop_conv)
+    # Layer 3
         x = self.conv3(x)
-        x = self.act3(x)
         if training:
             x=self.bn3(x)
+            x = self.act3(x)
+        else:
+            x = self.act3(x)
         x = self.pool3(x)
-        if training:
-            x = self.drop3(x)
-        # Layer 4
+        x = Dropout(self.drop_conv)
+    # Layer 4
         x = self.conv4(x)
-        x = self.act4(x)
         if training:
             x=self.bn4(x)
+            x = self.act4(x)
+        else:
+            x = self.act4(x)
         x = self.pool4(x)
-        if training:
-            x = self.drop4(x)
-        # Layer 5
+        x = Dropout(self.drop_conv)
+    # Layer 5
         x = UpSampling2D((2, 2),interpolation="bilinear")(x)
         x = self.conv5u(x)
-        # Layer 6
+    # Layer 6
         x = UpSampling2D((2, 2),interpolation="bilinear")(x)
         x = self.conv6u(x)
-        # Layer 7
+    # Layer 7
         x = UpSampling2D((2, 2),interpolation="bilinear")(x)
         x = self.conv7u(x)
-        # Layer 8
+    # Layer 8
         x = UpSampling2D((2, 2),interpolation="bilinear")(x)
         x = self.conv8u(x)
         seg_logits= tf.reshape(tensor=x,shape=(-1, self.img_height * self.img_height, self.number_of_classes))
-        ## First to second stage transition
+    ## First to second stage transition
         result_max = tf.argmax(x, 3)  # max result along axis 3
         result_max_labels = tf.equal(result_max, 1)  # object class is 0
         result_max = tf.cast(result_max_labels, tf.float32)
