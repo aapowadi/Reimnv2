@@ -269,7 +269,7 @@ class Solver_reim_cm:
                 # tr_weights=model_seg.trainable_weights
                 grads=tape.gradient(loss, model_seg.trainable_weights)
                 optimizer.apply_gradients(zip(grads,model_seg.trainable_weights))
-                seg_pred, l2_in = model_seg(self.Xtr_rgb[train_indices], 0)
+                seg_pred, l2_in = model_seg(self.Xtr_rgb[train_indices], 0, training = False)
                 seg_pred = tf.argmax(seg_pred, 2)
                 train_prec, train_rec = self.__getAccuracy(self.Ytr_mask[train_indices],
                                                            seg_pred)  # precision and recall
@@ -291,7 +291,7 @@ class Solver_reim_cm:
             test_indices = np.arange(len(self.Xte_rgb))
             np.random.shuffle(test_indices)
             test_indices = test_indices[0:self.test_size]
-            seg_pred, l2_in = model_seg(self.Xte_rgb[test_indices], 0)
+            seg_pred, l2_in = model_seg(self.Xte_rgb[test_indices], 0, training = False)
             seg_pred = tf.argmax(seg_pred, 2)
             precision, recall = self.__getAccuracy(self.Yte_mask[test_indices], seg_pred)
 
@@ -305,8 +305,9 @@ class Solver_reim_cm:
             sample = sample.reshape([1, sample.shape[1], sample.shape[2], sample.shape[3]])
 
             # execute the test
-            prr, l2_test = model_seg(sample, 0)
-            pr = np.array(l2_test)
+            prr, l2_test = model_seg(sample, 0, training = False)
+            prr = tf.argmax(prr, 2)
+            pr = np.array(prr)
             pr = pr.reshape([-1, self.im_width]).astype(float)
             pr = pr * 255
             test_mask = self.Yte_mask[idx]

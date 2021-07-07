@@ -11,7 +11,7 @@ class DNNMODE(Enum):
 
 
 def init_weights(shape, name):
-    return tf.Variable(tf.random_normal(shape, name=name, stddev = 0.01))
+    return tf.Variable(tf.random.normal(shape, name=name, stddev = 0.01))
 
 
 
@@ -55,11 +55,8 @@ def get_bilinear_filter(filter_shape, upscale_factor):
     weights = np.zeros(filter_shape)
     for i in range(filter_shape[2]):
         weights[:, :, i, i] = bilinear
-    init = tf.constant_initializer(value=weights,
-                                   dtype=tf.float32)
-
-    bilinear_weights = tf.get_variable(name="decon_bilinear_filter", initializer=init,
-                                       shape=weights.shape)
+    init = tf.constant_initializer(value=weights)
+    bilinear_weights = tf.Variable(initial_value=init(shape=weights.shape,dtype=tf.float32))
     return bilinear_weights
 
 
@@ -69,20 +66,20 @@ def upsample_layer(bottom, n_channels, name, upscale_factor):
     kernel_size = 2 * upscale_factor - upscale_factor % 2
     stride = upscale_factor
     strides = [1, stride, stride, 1]
-    with tf.variable_scope(name):
-        # Shape of the bottom tensor
-        in_shape = tf.shape(bottom)
 
-        h = ((in_shape[1] - 1) * stride) + 2
-        w = ((in_shape[2] - 1) * stride) + 2
-        new_shape = [in_shape[0], h, w, n_channels]
-        output_shape = tf.stack(new_shape)
+    # Shape of the bottom tensor
+    in_shape = tf.shape(bottom)
 
-        filter_shape = [kernel_size, kernel_size, n_channels, n_channels]
+    h = ((in_shape[1] - 1) * stride) + 2
+    w = ((in_shape[2] - 1) * stride) + 2
+    new_shape = [in_shape[0], h, w, n_channels]
+    output_shape = tf.stack(new_shape)
 
-        weights = get_bilinear_filter(filter_shape, upscale_factor)
-        deconv = tf.nn.conv2d_transpose(bottom, weights, output_shape,
-                                        strides=strides, padding='SAME')
+    filter_shape = [kernel_size, kernel_size, n_channels, n_channels]
+
+    weights = get_bilinear_filter(filter_shape, upscale_factor)
+    deconv = tf.nn.conv2d_transpose(bottom, weights, output_shape,
+                                    strides=strides, padding='SAME')
 
     return deconv
 

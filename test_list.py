@@ -2,6 +2,7 @@
 import sys
 sys.dont_write_bytecode = True
 from models.Model_8n_sub1 import *
+from models.Model_8n_sub2 import *
 from solvers.Solver_reim_cm import *
 from solvers.Solver_nrm import *
 from solvers.solver_nvalid import *
@@ -107,7 +108,7 @@ def exs(name):
     ex2n_valid["train_dataset"] = "../../datasets/tr-128-40k.pickle"
     ex2n_valid["eval_dataset"] = "../../datasets/tr-128-40k.pickle"
     ex2n_valid["solver"] = solver_nvalid
-    ex2n_valid["model"] = Model_8n_sub1
+    ex2n_valid["model"] = Model_8n_sub2
     ex2n_valid["learning_rate"] = 0.001
     ex2n_valid["num_iterations"] = 100
     ex2n_valid["debug_output"] = True
@@ -128,8 +129,8 @@ def exs(name):
     ex2n["train_dataset"] = "../../datasets/tr-128-40k.pickle"
     ex2n["eval_dataset"] = "../../datasets/tr-128-40k.pickle"
     ex2n["solver"] = Solver_reim_cm
-    ex2n["model"] = Model_8n_sub1
-    ex2n["learning_rate"] = 0.1
+    ex2n["model"] = Model_8n_sub2
+    ex2n["learning_rate"] = 0.001
     ex2n["num_iterations"] = 100
     ex2n["debug_output"] = True
     ex2n["log_path"] = "./log_syn/ex2n/"

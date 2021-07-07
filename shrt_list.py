@@ -2,6 +2,8 @@
 import sys
 sys.dont_write_bytecode = True
 from models.Model_8n_sub_tst import *
+from models.Model_8n_sub_tst2 import *
+from models.m_sub.M8 import *
 from solvers.Solver_reim_cm import *
 from solvers.Solver_nrm import *
 from solvers.solver_nvalid import *
@@ -35,9 +37,9 @@ def exs(name):
     ex_test["train_dataset"] = "../../datasets/tr-128-40k.pickle"
     ex_test["eval_dataset"] = "../../datasets/tr-128-40k.pickle"
     ex_test["solver"] = Solver_reim_cm
-    ex_test["model"] = Model_8n_sub_tst
+    ex_test["model"] = M8
     ex_test["batch_size"] = 128
-    ex_test["learning_rate"] = 0.1
+    ex_test["learning_rate"] = 0.0001
     ex_test["num_iterations"] = 100
     ex_test["debug_output"] = True
     ex_test["log_path"] = "./log_shrt/ex_test/"
