@@ -44,6 +44,5 @@ class conv_layer(keras.Model):
         """
         x = tf.nn.conv2d(X, filters=self.w, strides=self.strides, padding=self.padding)
         x = self.activation(x)
-
         return x
 

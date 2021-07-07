@@ -45,14 +45,16 @@ class nconv_layer(keras.Model):
         x = tf.nn.conv2d(X, filters=self.w, strides=self.strides, padding=self.padding)
         if phase_train == True:
             batch_mean2, batch_var2 = tf.nn.moments(x, [0])
-            x = tf.nn.batch_normalization(x, batch_mean2, batch_var2, beta2, scale2, self.epsilon)
+            BN1 = tf.nn.batch_normalization(x, batch_mean2, batch_var2, beta2, scale2, self.epsilon)
             if self.use_bias:
-                x = x + self.b
-            x = self.activation(x)
+                x = BN1 + self.b
+            x = self.activation(BN1)
         else:
             if self.use_bias:
                 x = x + self.b
             x = self.activation(x)
+        x = tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+        x = tf.nn.dropout(x, drop_conv)
 
         return x
 
