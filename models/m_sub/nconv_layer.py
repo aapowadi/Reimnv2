@@ -1,60 +1,46 @@
 # import the necessary packages
 from tensorflow import keras
+from tensorflow.keras.layers import BatchNormalization
+from tensorflow.keras.layers import MaxPooling2D
+from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import Conv2DTranspose
+from tensorflow.keras.layers import UpSampling2D
+from tensorflow.keras.layers import Dropout
 import tensorflow as tf
+
+
 class nconv_layer(keras.Model):
     """
     Model sub-class
     """
-    def __init__(self,filters,kernel_size,strides,activation,padding,
-                 kernel_initializer, bias_initializer, use_bias):
-        #Call the parent constructor
-        super(nconv_layer,self).__init__()
-        self.epsilon = 1e-3
-        self.filters = filters
-        self.kernel_size = kernel_size
+
+    def __init__(self, kernel_size, n_channels, n_filters, strides, kernel_initializer, padding="SAME", wname="kernel"):
+        # Call the parent constructor
+        super(nconv_layer, self).__init__()
+        self.n_filters = n_filters
         self.strides = strides
-        self.padding = padding
-        self.activation = activation
+        self.kernel_size = kernel_size
         self.kernel_initializer = kernel_initializer
-        self.bias_initializer = bias_initializer
-        self.use_bias = use_bias
+        self.n_channels = n_channels
         self.w = None
-        self.b = None
-    def build(self, input_shape):
-        *_, n_channels = input_shape
-        self.w = tf.Variable(initial_value=self.kernel_initializer(shape=(*self.kernel_size,
-                                                                          n_channels,self.filters)),
-                             dtype='float32', trainable=True)
-        if(self.use_bias):
-            self.b = tf.Variable(
-            initial_value=self.bias_initializer(shape=(self.filters,),
-                                                dtype='float32'),trainable=True)
+        self.padding = padding
+        self.wname = wname
+        self.w = tf.Variable(
+            initial_value=self.kernel_initializer(shape=(*self.kernel_size, self.n_channels, self.n_filters),
+                                                  dtype='float32'), trainable=True, name=self.wname, dtype=tf.float32)
+
         ##----------------------------------------------------------------------------------------
-
-
-    def call(self,X,drop_conv,scale2,beta2, phase_train = False):
+    def call(self, X, drop_conv, beta2, scale2, training=False, epsilon=1e-3):
         """
-        Convolution Layer with batch normalization.
-        Args:
-            X = Input
-            w = Filters
-            drop_conv = dropout rate
-            beta2 = offset
-            scale2 = scale
         """
-        x = tf.nn.conv2d(X, filters=self.w, strides=self.strides, padding=self.padding)
-        if phase_train == True:
-            batch_mean2, batch_var2 = tf.nn.moments(x, [0])
-            BN1 = tf.nn.batch_normalization(x, batch_mean2, batch_var2, beta2, scale2, self.epsilon)
-            if self.use_bias:
-                x = BN1 + self.b
-            x = self.activation(BN1)
+        conv1 = tf.nn.conv2d(X, self.w, self.strides, padding=self.padding)
+        if training:
+            batch_mean2, batch_var2 = tf.nn.moments(conv1, [0])
+            bn1 = tf.nn.batch_normalization(conv1, batch_mean2, batch_var2, beta2, scale2, epsilon)
+            conv1_a = tf.nn.relu(bn1)
         else:
-            if self.use_bias:
-                x = x + self.b
-            x = self.activation(x)
-        x = tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
-        x = tf.nn.dropout(x, drop_conv)
+            conv1_a = tf.nn.relu(conv1)
+        conv1 = tf.nn.max_pool(conv1_a, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+        conv1 = tf.nn.dropout(conv1, drop_conv)
 
-        return x
-
+        return conv1

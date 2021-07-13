@@ -1,49 +1,39 @@
 # import the necessary packages
-from tensorflow import keras
+from models.m_sub.bilinear_filter import *
 import tensorflow as tf
-from models.m_sub.m_tools import *
+
+
 class upsample_layer(keras.Model):
     """
     Model sub-class
     """
-    def __init__(self,filters,padding,
-                 kernel_initializer, bias_initializer, use_bias):
-        #Call the parent constructor
-        super(upsample_layer,self).__init__()
-        self.upscale = 2
-        self.filters = filters
-        self.padding = padding
-        self.kernel_initializer = kernel_initializer
-        self.bias_initializer = bias_initializer
-        self.use_bias = use_bias
-        self.w = None
-        self.b = None
+
+    def __init__(self,n_channels,
+                 upscale_factor, wname = "kernel"):
+        # Call the parent constructor
+        super(upsample_layer, self).__init__()
+        self.n_channels = n_channels
+        self.wname = wname
+        self.upscale_factor = upscale_factor
+        self.kernel_size = 2 * self.upscale_factor - self.upscale_factor % 2
+        self.stride = self.upscale_factor
+        self.strides = [1, self.stride, self.stride, 1]
         ##----------------------------------------------------------------------------------------
-    def build(self, input_shape):
-        *_, n_channels = input_shape
-        self.w = tf.Variable(initial_value=self.kernel_initializer(shape=(*self.kernel_size,
-                                                                          n_channels,self.filters)),
-                             dtype='float32', trainable=True)
 
-    def call(self,bottom, n_channels):
+    def call(self, inputs):
         """
         """
-        kernel_size = 2 * self.upscale - self.upscale % 2
-        stride = self.upscale
-        strides = [1, stride, stride, 1]
+        in_shape = tf.shape(inputs)
 
-        # Shape of the bottom tensor
-        in_shape = tf.shape(bottom)
-
-        h = ((in_shape[1] - 1) * stride) + 2
-        w = ((in_shape[2] - 1) * stride) + 2
-        new_shape = [in_shape[0], h, w, self.filters]
+        h = ((in_shape[1] - 1) * self.stride) + 2
+        w = ((in_shape[2] - 1) * self.stride) + 2
+        new_shape = [in_shape[0], h, w, self.n_channels]
         output_shape = tf.stack(new_shape)
-
-        filter_shape = [kernel_size, kernel_size, self.filters, self.filters]
-
-        self.weights = get_bilinear_filter(filter_shape, self.upscale)
-        deconv = tf.nn.conv2d_transpose(bottom, self.w, output_shape,
-                                        strides=strides, padding='SAME')
-
+        filter_shape = [self.kernel_size, self.kernel_size, self.n_channels, self.n_channels]
+        self.bilinear_filter = b_filter(filter_shape,self.upscale_factor,self.wname)
+        _bil_fil = self.bilinear_filter(inputs)
+        deconv = tf.nn.conv2d_transpose(inputs, _bil_fil, output_shape,
+                                        strides=self.strides, padding='SAME')
         return deconv
+
+

@@ -136,6 +136,11 @@ def prepare_data_RGBD_pose(filename):
 
     return [Xtr, Xtr_depth, Ytr, Ytr_pose, Xte, Xte_depth, Yte, Yte_pose]
 
+def decimal_range(start, stop, increment):
+        while start <= stop:  # and not math.isclose(start, stop): Py>3.5
+            yield start
+            start += increment
+
 
 
 def prepare_data_RGBD_6DoF(filename):

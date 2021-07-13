@@ -1,7 +1,6 @@
 import sys
 sys.dont_write_bytecode = True
-import numpy as np
-import os
+import pathlib
 import cv2
 from solvers.tools.reim_loss import *
 import tensorflow as tf
@@ -22,9 +21,6 @@ class Solver_reim_cm:
 
     def drp_pose(self, drp_pose):
         self.keep_hidden = drp_pose
-
-    def set_norm(self, norm):
-        self.__norm = norm;
 
     def __init__(self, model_class, num_classes, num_pose_t_outputs, num_pose_q_output, learning_rate=0.0001):
         """Constructor
@@ -133,7 +129,7 @@ class Solver_reim_cm:
         """
         self.__start_eval(Xte_rgb, Xte_depth, Yte_mask, Yte_pose)
 
-    def setLogPathAndFile(self, log_path, log_file, plot_title):
+    def setLogPathAndFile(self, log_path, log_file, plot_title, trained_models):
         """Set a log file path and a log file name.
 
         The solve logs the tensorflow checkpoints automatically each 10 epochs.
@@ -149,6 +145,7 @@ class Solver_reim_cm:
         self.saver_log_folder = log_path
         self.saver_log_file = log_file
         self.plot_title = plot_title
+        self.trained_model_path = trained_models
 
     def setParams(self, num_epochs, batch_size, test_size):
         """Set training parameters.
@@ -205,16 +202,6 @@ class Solver_reim_cm:
 
         self.train_pose_q = tf.keras.optimizers.Adam(self.learning_rate_q, 0.9).minimize(self.pose_loss_q,grad_loss=self.pose_grad_q)
 
-    def seg_train_step(self, train_indices):
-        """Set up the training parameters
-        """
-        # Prediction operations
-        # Maximum arguments over all logits along dimension 1.
-        self.prediction = tf.argmax(self.Y_pre_logits, 2)
-
-        # Probability operation for all logits
-        self.probabilities = tf.nn.softmax(self.Y_pre_logits)
-
     def train_seg(self):
         """
         Start the training procedure.
@@ -222,26 +209,32 @@ class Solver_reim_cm:
         the number of epochs will be added to the current number.
         :return:
         """
-################################################################################################################
-            # if self.restore_model:
-            #     saver = tf.train.import_meta_graph(self.saver_log_folder + "../" + self.restore_from_file)
-            #     saver.restore(sess, tf.train.latest_checkpoint(self.saver_log_folder + "../"))
-            #     print("Model restored at epoche ", sess.run('epoche:0'))
-################################################################################################################
-        model_seg=self.model_cls(self.number_classes,self.im_height)
-        # Softmax and cross-entropy to determine the loss
-
-        # Reduce the sum of all errors. This will sum up all the
-        # incorrect identified pixels as loss and reduce this number.
-
+        net=self.model_cls(self.number_classes,self.im_height)
 
         # Training with adam optimizer.
         optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
+        self.step = 0;
+        self.iter = 0;
+        ckpt = tf.train.Checkpoint(step=tf.Variable(1), optimizer=optimizer,
+                                   net=net)
+        manager = tf.train.CheckpointManager(ckpt, self.trained_model_path, max_to_keep=3)
+        # ----------------------------
+        # -----  Train and Save  -----
+        # ----------------------------
+
+        if self.cont:
+            ckpt.restore(manager.latest_checkpoint)
+
+            if manager.latest_checkpoint:
+                print("Restored from {}".format(manager.latest_checkpoint))
+        else:
+            print("Initializing from scratch.")
+
         for i in range(self.num_epochs):
             # Count the steps manually
             start_idx=0
-            self.step = i + start_idx
             self.iter = i;
+            self.step = ckpt.step
             ## ---------------------------------------------------------------------------------
             # Train
             training_batch = zip(range(0, len(self.Xtr_rgb), self.batch_size),
@@ -255,43 +248,46 @@ class Solver_reim_cm:
             overall_t_rms = 0
             overall_q_rms = 0
             average_loss = 0
+            test_loss = 0
             average_t_loss = 0
             average_q_loss = 0
-            i = 0
+            j = 0
 
             # run the batch
             for start, end in training_batch:
                 with tf.GradientTape() as tape:
                     train_indices = shuffled[start:end]
-                    seg_logits, predictions = model_seg(self.Xtr_rgb[train_indices],self.drop_conv,training=True)
-                    cross_entropies = tf.nn.softmax_cross_entropy_with_logits(self.Ytr_mask[train_indices],seg_logits)
-                    loss = tf.reduce_sum(cross_entropies)
-                # tr_weights=model_seg.trainable_weights
-                grads=tape.gradient(loss, model_seg.trainable_weights)
-                optimizer.apply_gradients(zip(grads,model_seg.trainable_weights))
-                seg_pred, l2_in = model_seg(self.Xtr_rgb[train_indices], 0, training = False)
+                    seg_logits, predictions = net(self.Xtr_rgb[train_indices],self.drop_conv, training=True)
+                    loss = tf.nn.softmax_cross_entropy_with_logits(labels=self.Ytr_mask[train_indices],logits=seg_logits)
+                    loss = tf.reduce_sum(loss)
+                    #loss /= tf.cast(tf.reduce_prod(tf.shape(self.Ytr_mask[train_indices])[1:]), tf.float32)
+                grads=tape.gradient(loss, net.trainable_weights)
+                optimizer.apply_gradients(zip(grads,net.trainable_weights))
+                seg_pred, l2_in = net(self.Xtr_rgb[train_indices], 0, training = False)
                 seg_pred = tf.argmax(seg_pred, 2)
                 train_prec, train_rec = self.__getAccuracy(self.Ytr_mask[train_indices],
                                                            seg_pred)  # precision and recall
-                i=i+1
+                j=j+1
                 overall_precision = overall_precision + train_prec
                 overall_recall = overall_recall + train_rec
                 average_loss = average_loss + (loss / (self.im_width * self.im_height))
 
-            overall_precision = overall_precision / i;
-            overall_recall = overall_recall / i;
-            average_loss = average_loss / i;
-            average_q_loss = average_q_loss / i;
-            average_t_loss = average_t_loss / i;
-            overall_t_rms = overall_t_rms / i;
-            overall_q_rms = overall_q_rms / i;
+            overall_precision = overall_precision / j;
+            overall_recall = overall_recall / j;
+            average_loss = average_loss / j;
+            average_q_loss = average_q_loss / j;
+            average_t_loss = average_t_loss / j;
+            overall_t_rms = overall_t_rms / j;
+            overall_q_rms = overall_q_rms / j;
 
             ### ---------------------------------------------------------------------------------
             # Test accuracy
             test_indices = np.arange(len(self.Xte_rgb))
             np.random.shuffle(test_indices)
             test_indices = test_indices[0:self.test_size]
-            seg_pred, l2_in = model_seg(self.Xte_rgb[test_indices], 0, training = False)
+            seg_pred, l2_in = net(self.Xte_rgb[test_indices], 0, training = False)
+            loss = tf.nn.softmax_cross_entropy_with_logits(labels=self.Ytr_mask[train_indices], logits=seg_pred)
+            test_loss = tf.reduce_sum(loss)/(self.im_width * self.im_height)
             seg_pred = tf.argmax(seg_pred, 2)
             precision, recall = self.__getAccuracy(self.Yte_mask[test_indices], seg_pred)
 
@@ -305,9 +301,9 @@ class Solver_reim_cm:
             sample = sample.reshape([1, sample.shape[1], sample.shape[2], sample.shape[3]])
 
             # execute the test
-            prr, l2_test = model_seg(sample, 0, training = False)
+            prr, l2_test = net(sample, 0, training = False)
             prr = tf.argmax(prr, 2)
-            pr = np.array(prr)
+            pr = np.array(prr).astype(float)
             pr = pr.reshape([-1, self.im_width]).astype(float)
             pr = pr * 255
             test_mask = self.Yte_mask[idx]
@@ -315,77 +311,37 @@ class Solver_reim_cm:
             te = test_mask.reshape([-1, self.im_width]).astype(float)
             te = te * 255
 
-            if self.step % 10 == 0:
-                if not os.path.exists(self.saver_log_folder + "render"):
-                    os.makedirs(self.saver_log_folder + "render")
-                file = self.saver_log_folder + "render/result_" + str(self.step) + ".png"
-                file2 = self.saver_log_folder + "render/result_rgb_" + str(self.step) + ".png"
+            if self.iter % 10 == 0:
+                pathlib.Path(self.saver_log_folder + "render").mkdir(parents=True, exist_ok=True)
+                file = self.saver_log_folder + "render/result_" + str(float(self.step)) + ".png"
+                file2 = self.saver_log_folder + "render/mask_rgb_" + str(float(self.step)) + ".png"
                 cv2.imwrite(file, pr)
-            #####
-            ## ---------------------------------------------------------------------------------
-            # Save and test all 10 iterations
-            #if i % 10 == 0:
-                # self.saver.save(sess, self.saver_log_folder + self.saver_log_file, global_step=self.step)
-                # print("Saved at step {self.step}")
-                # render and print the current outcome
-                # self.__sample_test(self.Xte_rgb, self.Xte_depth, self.Yte_mask, self.Yte_pose, sess)
+                cv2.imwrite(file2, te)
 
-            if not os.path.exists(self.saver_log_folder):
-                try:
-                    os.makedirs(self.saver_log_folder)
-                except OSError:
-                    print("Creation of the directory %s failed" % self.saver_log_folder)
-
+            pathlib.Path(self.saver_log_folder).mkdir(parents=True, exist_ok=True)
             if (self.iter == 0 and self.cont == 0):
-                file = open(self.saver_log_folder + "seg_results.csv", "w")
+                file = open(self.saver_log_folder + "accuracy_results.csv", "w")
                 file.close()
-                file = open(self.saver_log_folder + "train_pose_results.csv", "w")
+                file = open(self.saver_log_folder + "losses.csv", "w")
                 file.close()
-                file = open(self.saver_log_folder + "test_pose_results.csv", "w")
-                file.close()
-                file = open(self.saver_log_folder + "train_loss.csv", "w")
-                file.close()
-                file = open(self.saver_log_folder + "test_loss.csv", "w")
-                file.close()
-            #self.__sample_test(self.Xte_rgb, self.Xte_depth, self.Yte_mask, self.Yte_pose, sess)
 
-            # file = open(self.saver_log_folder + "test_loss.csv", "a")
-            # file_str = str(self.step) + "," + str(test_loss / self.im_width * self.im_height) + "," + str(
-            #     test_pose_t_loss) + "," + str(test_pose_q_loss) + "\n"
-            # file.write(file_str)s
-            # file.close()
-
-            file = open(self.saver_log_folder + "train_loss.csv", "a")
-            file_str = str(self.step) + "," + str(float(average_loss)) + "," + str(
-                average_t_loss) + "," + str(average_q_loss) + "\n"
+            file = open(self.saver_log_folder + "losses.csv", "a")
+            file_str = str(float(self.step)) + "," + str(float(average_loss)) + "," \
+                       + str(float(test_loss)) + "\n"
             file.write(file_str)
             file.close()
 
-            file = open(self.saver_log_folder + "seg_results.csv", "a")
+            file = open(self.saver_log_folder + "accuracy_results.csv", "a")
 
-            out = str(self.step) + "," + str(overall_precision) + "," + str(
+            out = str(float(self.step)) + "," + str(overall_precision) + "," + str(
                 overall_recall) + "," + str(precision) + "," + str(
                 recall) + "\n"
             file.write(out)
-            # if self.step % 10 ==0:
-            print("Step %d: loss = %.4f" % (self.step,average_loss))
-            # if (self.stage2 == True):
-            #     file = open(self.saver_log_folder + "train_pose_results.csv", "a")
-            #
-            #     out = str(self.step) + "," + str(overall_t_rms) + "," + str(overall_q_rms) + "\n"
-            #     file.write(out)
-            #
-            #     file.close()
-            #     file = open(self.saver_log_folder + "test_pose_results.csv", "a")
-            #
-            #     out = str(self.step) + "," + str(testt_rms) + "," + str(testq_mean) + "\n"
-            #     file.write(out)
-            #
-            #     file.close()
-
-        # save the last step
-        # self.saver.save(sess, self.saver_log_folder + self.saver_log_file, global_step=self.step)
-
+            if int(ckpt.step) % 10 == 0:
+                save_path = manager.save()
+                print("Saved checkpoint for step {}: {}".format(int(ckpt.step), save_path))
+            print("Step %d: loss = %.4f, precision = %.4f, recall = %.4f" % (self.step,average_loss,overall_precision,overall_recall))
+            ckpt.step.assign_add(1)
 
     def __getAccuracy(self, Y, Ypr, validation="", start_index=0):
         """
@@ -398,7 +354,7 @@ class Solver_reim_cm:
         :param start_index: (int), for the file writer; a batch indes that indicates the number of the current batch.
         :return: the precision (float) and recall (float) values.
         """
-        Ypr_arr=np.array(Ypr)
+        Ypr_arr=np.array(Ypr).astype(float)
         pr = Ypr_arr.reshape([-1, self.im_width, self.im_height]).astype(float)
         pr = pr * 255
 

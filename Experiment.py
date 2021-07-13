@@ -3,7 +3,7 @@ sys.dont_write_bytecode = True
 from solvers.Solver_reim_cm import *
 from models.filetools import *
 from solvers.tools.quattool import *
-import tensorflow as tf
+from plot_graphs import *
 
 class Experiment:
     """Universal class to run CNN model experiments.
@@ -124,27 +124,51 @@ class Experiment:
 
 
         # Init the network
+        if self._descrip["batch"] == False:
+            logs = []
+            solver = self._descrip["solver"](self._descrip["model"], 2, 3, 4, self._descrip["learning_rate"])
+            solver.setParams(self._descrip["num_iterations"], self._descrip["batch_size"], self._descrip["batch_size"])
+            solver.showDebug(self._descrip["debug_output"])
+            solver.setLogPathAndFile(self._descrip["log_path"], self._descrip["log_file"]
+                                     ,self._descrip["plot_title"],(self._descrip["trained_models"]))
+            logs.append(self._descrip["log_path"])
 
-        solver = self._descrip["solver"](self._descrip["model"], 2, 3, 4, self._descrip["learning_rate"])
-        solver.setParams(self._descrip["num_iterations"], self._descrip["batch_size"], self._descrip["batch_size"])
-        solver.showDebug(self._descrip["debug_output"])
-        solver.setLogPathAndFile(self._descrip["log_path"], self._descrip["log_file"],self._descrip["plot_title"])
+            # start training
+            solver.init(Xtr_rgb.shape[1], Xtr_rgb.shape[2], self._descrip["restore_file"],self._descrip["cont"])
+            solver.img_dimensions(Xtr_rgb.shape[1], Xtr_rgb.shape[2])
+            solver.trainstage(self._descrip["stage2"])
+            solver.drp_cnv(self._descrip["drp_cnv"])
+            solver.drp_pose(self._descrip["drp_pose"])
+            if self._descrip["train"]:
+                solver.train( Xtr_rgb, Xtr_depth, Ytr_mask, Ytr_pose, Xte_rgb, Xte_depth, Yte_mask, Yte_pose)
+        else:
+            j=0;
+            logs = []
+            for i in decimal_range(self._descrip["learning_rate"],0.1,0.001):
+                j=j+1
+                solver = self._descrip["solver"](self._descrip["model"], 2, 3, 4, (self._descrip["learning_rate"]+i))
+                solver.setParams(self._descrip["num_iterations"], self._descrip["batch_size"], self._descrip["batch_size"])
+                solver.showDebug(self._descrip["debug_output"])
+                log_path = self._descrip["log_path"][:-1] + str(j) + "/"
+                logs.append(log_path)
+                solver.setLogPathAndFile((log_path), (self._descrip["log_file"]),
+                                         (self._descrip["plot_title"]),(self._descrip["trained_models"]))
 
-        # start training
-        solver.init(Xtr_rgb.shape[1], Xtr_rgb.shape[2], self._descrip["restore_file"],self._descrip["cont"])
-        solver.img_dimensions(Xtr_rgb.shape[1], Xtr_rgb.shape[2])
-        solver.trainstage(self._descrip["stage2"])
-        solver.drp_cnv(self._descrip["drp_cnv"])
-        solver.drp_pose(self._descrip["drp_pose"])
-        solver.set_norm(self._descrip["norm"])
-        if self._descrip["train"]:
-            solver.train( Xtr_rgb, Xtr_depth, Ytr_mask, Ytr_pose, Xte_rgb, Xte_depth, Yte_mask, Yte_pose)
+                # start training
+                solver.init(Xtr_rgb.shape[1], Xtr_rgb.shape[2], self._descrip["restore_file"], self._descrip["cont"])
+                solver.img_dimensions(Xtr_rgb.shape[1], Xtr_rgb.shape[2])
+                solver.trainstage(self._descrip["stage2"])
+                solver.drp_cnv(self._descrip["drp_cnv"])
+                solver.drp_pose(self._descrip["drp_pose"])
+                if self._descrip["train"]:
+                    solver.train(Xtr_rgb, Xtr_depth, Ytr_mask, Ytr_pose, Xte_rgb, Xte_depth, Yte_mask, Yte_pose)
 
+        plot_stuff(logs, Xtr_rgb.shape[1], Xtr_rgb.shape[2],self._descrip["batch"])
         # evaluate
-        if self._descrip["test"]:
-            solver.eval(Xte_rgb, Xte_depth, Yte_mask, Yte_pose)
-
-        # evaluation with a second evaluation set.
+        # if self._descrip["test"]:
+        #     solver.eval(Xte_rgb, Xte_depth, Yte_mask, Yte_pose)
+        #
+        # # evaluation with a second evaluation set.
         if self._descrip["eval"] and len(self._descrip["eval_dataset"]) > 0:
             loaded_eval_data = prepare_data_RGBD_6DoF(self._descrip["eval_dataset"])
             # Real world evaluation data
@@ -155,15 +179,7 @@ class Experiment:
 
             # swap colums for the quaternion from (x, y, z, w) -> (w, x, y, z)
             # Yev_pose[:,[3,6]] = Yev_pose[:,[6,3]]
-            solver.eval(Xev_rgb, Xev_depth, Yev_mask, Yev_pose)
-
-        # # Analyze the results
-        # da = DataAnalysis()
-        # da.setModelParam(str(self._descrip["model"]), str(self._descrip["solver"]), self._descrip["label"])
-        # da.setExpParam(self._descrip["train_dataset"], Xtr_rgb.shape[0], Xte_rgb.shape[0], self._descrip["num_iterations"])
-        # da.analyze(self._descrip["log_path"], self._descrip["log_path"], self._descrip["plot_title"], self._descrip["quat_used"], False)
-
-
+        #     solver.eval(Xev_rgb, Xev_depth, Yev_mask, Yev_pose)
 
     def __check_dict__(self, dict):
         """Check if all keys are present
@@ -183,7 +199,8 @@ class Experiment:
 
         expected_keys = ["train_dataset", "eval_dataset", "solver", "model", "num_iterations", "debug_output", "log_path",
                          "log_file", "train", "eval", "test","proof", "restore_file", "quat_used", "plot_title",
-                         "learning_rate", "label","stage2","cont","drp_cnv","drp_pose","batch_size", "only_r", "norm"]
+                         "learning_rate", "label","stage2","cont","drp_cnv","drp_pose","batch_size", "only_r","batch"
+                        ,"trained_models"]
 
         keys = dict.keys()
 
@@ -222,39 +239,42 @@ class Experiment:
                 elif i == "batch_size":
                     print("batch_size is missing! Set to 128")
                     self._descrip["batch_size"] = 128
+                elif i == "batch":
+                    print("batch Learning not set! default = False")
+                    self._descrip["batch"] = False
                 elif i == "debug_output":
-                    print("debug_output of iteratrion is missing! Set to False")
-                    self._descrip["debug_output"] = False
+                    print("debug_output of iteratrion is missing! Set to True")
+                    self._descrip["debug_output"] = True
                 elif i == "log_path":
                     print("log_path is missing! Set to ./logs/temp/")
                     self._descrip["log_path"] = "./logs/temp/"
+                elif i == "trained_models":
+                    print("path for trained models is missing! Set to ./temp_models/")
+                    self._descrip["trained_models"] = "./temp_models/"
                 elif i == "log_file":
                     print("log_file is missing! Set to idiot")
                     self._descrip["log_file"] = "idiot"
                 elif i == "stage2":
-                    print("Stage2 is not set")
+                    print("Stage2 is not set! default = False")
                     self._descrip["stage2"] = False
                 elif i == "only_r":
                     print("only_r is not set")
                     self._descrip["only_r"] = False
-                elif i == "norm":
-                    print("norm is not set! set it to True")
-                    self._descrip["norm"] = True
                 elif i == "cont":
-                    print("Continuation is not set")
+                    print("Continuation is not set, default = False")
                     self._descrip["cont"] = False
                 elif i == "drp_cnv":
-                    print("Dropout for 1st stage not set so, it is set to 1.0")
-                    self._descrip["drp_cnv"] = 1.0
+                    print("Dropout for 1st stage not set so, it is set to 0.0")
+                    self._descrip["drp_cnv"] = 0.0
                 elif i == "drp_pose":
-                    print("Dropout for 2nd stage not set so, it is set to 1.0")
-                    self._descrip["drp_pose"] = 1.0
+                    print("Dropout for 2nd stage not set so, it is set to 0.0")
+                    self._descrip["drp_pose"] = 0.0
                 elif i == "train":
                     print("train is missing! Set to True")
                     self._descrip["train"] = True
                 elif i == "eval":
-                    print("eval is missing! Set to True")
-                    self._descrip["eval"] = True
+                    print("eval is missing! Set to False")
+                    self._descrip["eval"] = False
                 elif i == "test":
                     print("test is missing! Set to False")
                     self._descrip["test"] = False

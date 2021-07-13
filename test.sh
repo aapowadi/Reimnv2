@@ -14,5 +14,3 @@ export GEOMSTATS_BACKEND=tensorflow
 cd /home/aapowadi/anirudha/m_exps/Reimnv2/
 
 python3 test.py -i ex_test
-
-#python ex_real.py -i ex_test_valid

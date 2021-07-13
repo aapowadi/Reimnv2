@@ -2,7 +2,7 @@
 import sys
 sys.dont_write_bytecode = True
 from models.Model_8n_sub1 import *
-from models.Model_8n_sub_tst import *
+from models.M1 import *
 from solvers.Solver_reim_cm import *
 from solvers.Solver_nrm import *
 from solvers.solver_nvalid import *
@@ -33,8 +33,8 @@ def exs(name):
         name = ex_test_valid
 
     ex_test = {}
-    ex_test["train_dataset"] = "../../datasets/tr-128-40k.pickle"
-    ex_test["eval_dataset"] = "../../datasets/tr-128-40k.pickle"
+    ex_test["train_dataset"] = "../../datasets/tr-128-comb.pickle"
+    ex_test["eval_dataset"] = "../../datasets/tr-128-comb.pickle"
     ex_test["solver"] = Solver_reim_cm
     ex_test["model"] = Model_8n_sub1
     ex_test["batch_size"] = 128
@@ -46,7 +46,7 @@ def exs(name):
     ex_test["train"] = True
     ex_test["eval"] = False
     ex_test["test"] = False
-    ex_test["proof"] = False
+    ex_test["proof"] = True
     ex_test["stage2"] = False
     ex_test["cont"] = False
     ex_test["drp_cnv"] = 0.0

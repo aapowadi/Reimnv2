@@ -48,18 +48,22 @@ class Model_8n_sub1(keras.Model):
         # Layer 5
         self.up_sam5 = Conv2DTranspose(256,(1,1),(2,2))
         self.conv5u = Conv2D(128,(1,1),padding="same")
+        self.act5 = Activation("relu")
         # Layer 6
         self.up_sam6 = Conv2DTranspose(128,(1,1),(2,2))
         self.conv6u = Conv2D(64,(1,1),padding="same")
+        self.act6 = Activation("relu")
         # Layer 7
         self.up_sam7 = Conv2DTranspose(64,(1,1),(2,2))
         self.conv7u = Conv2D(32,(1,1),padding="same")
+        self.act7 = Activation("relu")
         # Layer 8
         self.up_sam8 = Conv2DTranspose(32,(1,1),(2,2))
         self.conv8u = Conv2D(self.number_of_classes, (1, 1), padding="same")
+        self.act8 = Activation("relu")
         # Flatten the predictions, so that we can compute cross-entropy for
         # each pixel and get a sum of cross-entropies.
-        # For image size (64x64), the last layer is of size [N,64,64,2] -> [N, 4096, 2]
+        # For image size (128x128), the last layer is of size [N,128,128,2] -> [N, 16284, 2]
         # with number_of_classes = 2
         ##----------------------------------------------------------------------------------------
 
@@ -98,15 +102,20 @@ class Model_8n_sub1(keras.Model):
         # Layer 5
         x = UpSampling2D((2, 2), interpolation="bilinear")(x)
         x = self.conv5u(x)
+        x=self.act5(x)
+
         # Layer 6
         x = UpSampling2D((2, 2), interpolation="bilinear")(x)
         x = self.conv6u(x)
+        x = self.act6(x)
         # Layer 7
         x = UpSampling2D((2,2),interpolation="bilinear")(x)
         x = self.conv7u(x)
+        x = self.act7(x)
         # Layer 8
         x = UpSampling2D((2, 2),interpolation="bilinear")(x)
         x = self.conv8u(x)
+        x = self.act8(x)
         seg_logits= tf.reshape(tensor=x,shape=(-1, self.img_height * self.img_height, self.number_of_classes))
         ## First to second stage transition
         result_max = tf.argmax(x, 3)  # max result along axis 3
