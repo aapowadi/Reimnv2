@@ -1,9 +1,4 @@
-import tensorflow as tf
-import numpy as np
 from models.cnntools_norm import *
-from models.plottools import *
-import cv2
-
 class Model_8n:
     """
     This file implements a two-stage convolutional neural network for 6DoF pose estimation
@@ -113,7 +108,7 @@ class Model_8n:
         self.number_rot_outputs = number_rot_outputs
 
 
-    def Model_seg(self, X, p_keep_conv, img_height,phase_train):
+    def Model_seg(self, X, p_keep_conv, img_height,phase_train = False):
         """
         Describe the CNN model.
         :param X: RGB image input as array of size [N, width, height, 3]. Pixel range is [0, 255]
@@ -182,73 +177,73 @@ class Model_8n:
         self.fcn_predictions = tf.reshape(tensor=result_max, shape=(-1, img_height, img_height, 1))
         return self.segmentation_logits, self.fcn_predictions
 
-    def Model_pose(self,Xpred, Xd,p_keep_conv, p_keep_hidden, phase_train):
-        """
-        Describe the CNN model.
-        :param Xd: RGB image input as array of size [N, width, height, 1]. Pixel range is 0 or 1
-        :param Xpred: Prediction from 1st stage
-        :param p_keep_conv: (float) Dropout, probability to keep the values. For stage 1 only.
-        :return: self.trans_predictions - The activation outputs of stage 1 of size [N, width, height, C]
-                self.rot_predictions - The prediction output of stage 1 of size [N, width, height, C], each pixel contains a class label.
-        """
-        self.p_keep_conv = p_keep_conv
-        self.p_keep_hidden = p_keep_hidden
-        # segment the results from the network and
-        depth_in = tf.multiply(Xpred, Xd)
-
-        ##----------------------------------------------------------------------------------------
-        ## Second stage translation
-        self.w4t = init_weights([3, 3, 1, 32], "w4t") # 64 x 64 x 1 -> 32 x 32 x 32
-        self.scale4t = tf.Variable(tf.ones([32]))
-        self.beta4t = tf.Variable(tf.zeros([32]))
-        self.w5t = init_weights([3, 3, 32, 16], "w5t") # 32 x 32 x 32 -> 16 x 16 x 4
-        self.scale5t = tf.Variable(tf.ones([16]))
-        self.beta5t = tf.Variable(tf.zeros([16]))
-        self.wf1 = init_weights([32 * 32 * 16, 6025], "wf1")
-        # self.wf1 = init_weights([32 * 32 * 4, 625], "w6") #For 64x64 images
-        self.bf1 = tf.Variable(tf.zeros(6025))
-        self.wout = init_weights([6025, self.number_trans_outputs], "w_out")
-        self.bout = tf.Variable(tf.zeros(self.number_trans_outputs))
-
-        conv4t = conv_layer(depth_in, self.w4t, self.p_keep_conv,self.scale4t,
-                           self.beta4t,phase_train)
-        conv5t = conv_layer(conv4t, self.w5t, self.p_keep_conv,self.scale5t,
-                           self.beta5t,phase_train)
-
-        FC_layer = tf.reshape(conv5t, [-1, self.wf1.get_shape().as_list()[0]])
-        FC_layer = tf.nn.dropout(FC_layer, self.p_keep_hidden)
-
-        output_layer = tf.nn.relu(tf.add(tf.matmul(FC_layer, self.wf1), self.bf1))
-        output_layer = tf.nn.dropout(output_layer, self.p_keep_hidden)
-
-        self.trans_predictions = tf.add(tf.matmul(output_layer, self.wout), self.bout)
-
-        ##----------------------------------------------------------------------------------------
-        ## Second stage roation
-        self.w4r = init_weights([3, 3, 1, 32], "w4r")  # 64 x 64 x 1 -> 32 x 32 x 32
-        self.scale4r = tf.Variable(tf.ones([32]))
-        self.beta4r = tf.Variable(tf.zeros([32]))
-        self.w5r = init_weights([3, 3, 32, 16], "w5r")  # 32 x 32 x 32 -> 16 x 16 x 4
-        self.scale5r = tf.Variable(tf.ones([16]))
-        self.beta5r = tf.Variable(tf.zeros([16]))
-        self.wf1_r = init_weights([32 * 32 * 16, 8025], "wf1_r")
-        #self.wf1_r = init_weights([16 * 16 * 4, 825], "w6r") # For 64x64 images
-        self.bf1_r = tf.Variable(tf.zeros(8025))
-        self.wout_r = init_weights([8025, self.number_rot_outputs], "w_out_r")
-        self.bout_r = tf.Variable(tf.zeros(self.number_rot_outputs))
-
-        conv4r = conv_layer(depth_in, self.w4r, self.p_keep_conv,self.scale4r,
-                           self.beta4r,phase_train)
-        conv5r = conv_layer(conv4r, self.w5r, self.p_keep_conv,self.scale5r,
-                           self.beta5r,phase_train)
-
-        FC_layer_r = tf.reshape(conv5r, [-1, self.wf1_r.get_shape().as_list()[0]])
-        FC_layer_r = tf.nn.dropout(FC_layer_r, self.p_keep_hidden)
-
-        output_layer_r = tf.nn.relu(tf.add(tf.matmul(FC_layer_r, self.wf1_r), self.bf1_r))
-        output_layer_r = tf.nn.dropout(output_layer_r, self.p_keep_hidden)
-
-        self.rot_predictions = tf.add(tf.matmul(output_layer_r, self.wout_r), self.bout_r)
-
-        return self.trans_predictions, self.rot_predictions
+    # def Model_pose(self,Xpred, Xd,p_keep_conv, p_keep_hidden, phase_train):
+    #     """
+    #     Describe the CNN model.
+    #     :param Xd: RGB image input as array of size [N, width, height, 1]. Pixel range is 0 or 1
+    #     :param Xpred: Prediction from 1st stage
+    #     :param p_keep_conv: (float) Dropout, probability to keep the values. For stage 1 only.
+    #     :return: self.trans_predictions - The activation outputs of stage 1 of size [N, width, height, C]
+    #             self.rot_predictions - The prediction output of stage 1 of size [N, width, height, C], each pixel contains a class label.
+    #     """
+    #     self.p_keep_conv = p_keep_conv
+    #     self.p_keep_hidden = p_keep_hidden
+    #     # segment the results from the network and
+    #     depth_in = tf.multiply(Xpred, Xd)
+    #
+    #     ##----------------------------------------------------------------------------------------
+    #     ## Second stage translation
+    #     self.w4t = init_weights([3, 3, 1, 32], "w4t") # 64 x 64 x 1 -> 32 x 32 x 32
+    #     self.scale4t = tf.Variable(tf.ones([32]))
+    #     self.beta4t = tf.Variable(tf.zeros([32]))
+    #     self.w5t = init_weights([3, 3, 32, 16], "w5t") # 32 x 32 x 32 -> 16 x 16 x 4
+    #     self.scale5t = tf.Variable(tf.ones([16]))
+    #     self.beta5t = tf.Variable(tf.zeros([16]))
+    #     self.wf1 = init_weights([32 * 32 * 16, 6025], "wf1")
+    #     # self.wf1 = init_weights([32 * 32 * 4, 625], "w6") #For 64x64 images
+    #     self.bf1 = tf.Variable(tf.zeros(6025))
+    #     self.wout = init_weights([6025, self.number_trans_outputs], "w_out")
+    #     self.bout = tf.Variable(tf.zeros(self.number_trans_outputs))
+    #
+    #     conv4t = conv_layer(depth_in, self.w4t, self.p_keep_conv,self.scale4t,
+    #                        self.beta4t,phase_train)
+    #     conv5t = conv_layer(conv4t, self.w5t, self.p_keep_conv,self.scale5t,
+    #                        self.beta5t,phase_train)
+    #
+    #     FC_layer = tf.reshape(conv5t, [-1, self.wf1.get_shape().as_list()[0]])
+    #     FC_layer = tf.nn.dropout(FC_layer, self.p_keep_hidden)
+    #
+    #     output_layer = tf.nn.relu(tf.add(tf.matmul(FC_layer, self.wf1), self.bf1))
+    #     output_layer = tf.nn.dropout(output_layer, self.p_keep_hidden)
+    #
+    #     self.trans_predictions = tf.add(tf.matmul(output_layer, self.wout), self.bout)
+    #
+    #     ##----------------------------------------------------------------------------------------
+    #     ## Second stage roation
+    #     self.w4r = init_weights([3, 3, 1, 32], "w4r")  # 64 x 64 x 1 -> 32 x 32 x 32
+    #     self.scale4r = tf.Variable(tf.ones([32]))
+    #     self.beta4r = tf.Variable(tf.zeros([32]))
+    #     self.w5r = init_weights([3, 3, 32, 16], "w5r")  # 32 x 32 x 32 -> 16 x 16 x 4
+    #     self.scale5r = tf.Variable(tf.ones([16]))
+    #     self.beta5r = tf.Variable(tf.zeros([16]))
+    #     self.wf1_r = init_weights([32 * 32 * 16, 8025], "wf1_r")
+    #     #self.wf1_r = init_weights([16 * 16 * 4, 825], "w6r") # For 64x64 images
+    #     self.bf1_r = tf.Variable(tf.zeros(8025))
+    #     self.wout_r = init_weights([8025, self.number_rot_outputs], "w_out_r")
+    #     self.bout_r = tf.Variable(tf.zeros(self.number_rot_outputs))
+    #
+    #     conv4r = conv_layer(depth_in, self.w4r, self.p_keep_conv,self.scale4r,
+    #                        self.beta4r,phase_train)
+    #     conv5r = conv_layer(conv4r, self.w5r, self.p_keep_conv,self.scale5r,
+    #                        self.beta5r,phase_train)
+    #
+    #     FC_layer_r = tf.reshape(conv5r, [-1, self.wf1_r.get_shape().as_list()[0]])
+    #     FC_layer_r = tf.nn.dropout(FC_layer_r, self.p_keep_hidden)
+    #
+    #     output_layer_r = tf.nn.relu(tf.add(tf.matmul(FC_layer_r, self.wf1_r), self.bf1_r))
+    #     output_layer_r = tf.nn.dropout(output_layer_r, self.p_keep_hidden)
+    #
+    #     self.rot_predictions = tf.add(tf.matmul(output_layer_r, self.wout_r), self.bout_r)
+    #
+    #     return self.trans_predictions, self.rot_predictions
 

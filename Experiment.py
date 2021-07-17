@@ -264,8 +264,8 @@ class Experiment:
                     print("Continuation is not set, default = False")
                     self._descrip["cont"] = False
                 elif i == "drp_cnv":
-                    print("Dropout for 1st stage not set so, it is set to 0.0")
-                    self._descrip["drp_cnv"] = 0.0
+                    print("Dropout for 1st stage not set so, it is set to 0.2")
+                    self._descrip["drp_cnv"] = 0.2
                 elif i == "drp_pose":
                     print("Dropout for 2nd stage not set so, it is set to 0.0")
                     self._descrip["drp_pose"] = 0.0

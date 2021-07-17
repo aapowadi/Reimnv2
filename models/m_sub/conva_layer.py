@@ -27,4 +27,5 @@ class conv_layer(keras.layers.Layer):
         """
         """
         x = tf.nn.conv2d(X, self.w, self.strides, padding=self.padding)
+        x = tf.nn.relu(x)
         return x

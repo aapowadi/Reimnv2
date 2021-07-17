@@ -15,8 +15,8 @@ def exs(name):
     ex_test1["solver"] = Solver_reim_cm
     ex_test1["model"] = SM1
     ex_test1["batch_size"] = 64
-    ex_test1["learning_rate"] = 0.1
-    ex_test1["num_iterations"] = 15
+    ex_test1["learning_rate"] = 0.001
+    ex_test1["num_iterations"] = 50
     ex_test1["log_path"] = "./log_shrt/ex_test1/"
     ex_test1["log_file"] = "plx128"
     ex_test1["trained_models"] = "./trained_models/shrt/ex_test1/"

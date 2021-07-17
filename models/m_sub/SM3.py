@@ -1,15 +1,15 @@
 # import the necessary packages
 from models.m_sub.nconv_layer import *
-from models.m_sub.conv_layer import *
+from models.m_sub.conva_layer import *
 from models.m_sub.upsample_layer import *
 import tensorflow as tf
-class SM1(keras.Model):
+class SM3(keras.Model):
     """
     Model sub-class
     """
     def __init__(self, number_classes=2,img_height=128,chanDim=-1):
         #Call the parent constructor
-        super(SM1,self).__init__()
+        super(SM3,self).__init__()
         self.number_of_classes = number_classes
         self.img_height = img_height
 

@@ -1,15 +1,9 @@
 # import the necessary packages
 from tensorflow import keras
-from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.layers import MaxPooling2D
-from tensorflow.keras.layers import Conv2D
-from tensorflow.keras.layers import Conv2DTranspose
-from tensorflow.keras.layers import UpSampling2D
-from tensorflow.keras.layers import Dropout
 import tensorflow as tf
 
 
-class nconv_layer(keras.Model):
+class nconv_layer(keras.layers.Layer):
     """
     Model sub-class
     """

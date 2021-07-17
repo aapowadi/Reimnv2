@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 
 
-class b_filter(keras.Model):
+class b_filter(keras.layers.Layer):
     """
     Model sub-class
     """
