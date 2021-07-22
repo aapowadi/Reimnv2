@@ -3,14 +3,14 @@ from tensorflow import keras
 import tensorflow as tf
 
 
-class conv_layer(keras.layers.Layer):
+class conva_layer(keras.layers.Layer):
     """
     Model sub-class
     """
 
     def __init__(self, kernel_size, n_channels, n_filters, strides, kernel_initializer, padding="SAME", wname="kernel"):
         # Call the parent constructor
-        super(conv_layer, self).__init__()
+        super(conva_layer, self).__init__()
         self.n_filters = n_filters
         self.strides = strides
         self.kernel_size = kernel_size

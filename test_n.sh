@@ -7,11 +7,11 @@
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --exclude=Legion[01]
 #SBATCH --ntasks-per-node=1   # 16 processor core(s) per node
-#SBATCH --job-name="ex_n"
+#SBATCH --job-name="ex_nn"
 #SBATCH --output="s%j.out" # job standard output file (%j replaced by job id)
 #
 . ../../venv/bin/activate
 export GEOMSTATS_BACKEND=tensorflow
 cd /home/aapowadi/anirudha/m_exps/Reimnv2/
 
-python3 test.py -i ex_n
+python3 testnn.py -i ex_nn

@@ -286,7 +286,7 @@ class Solver_reim_cm:
             np.random.shuffle(test_indices)
             test_indices = test_indices[0:self.test_size]
             seg_pred, l2_in = net(self.Xte_rgb[test_indices], 0, training = False)
-            loss = tf.nn.softmax_cross_entropy_with_logits(labels=self.Ytr_mask[train_indices], logits=seg_pred)
+            loss = tf.nn.softmax_cross_entropy_with_logits(labels=self.Yte_mask[test_indices], logits=seg_pred)
             test_loss = tf.reduce_sum(loss)/(self.im_width * self.im_height)
             seg_pred = tf.argmax(seg_pred, 2)
             precision, recall = self.__getAccuracy(self.Yte_mask[test_indices], seg_pred)

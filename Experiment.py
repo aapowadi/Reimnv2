@@ -14,7 +14,7 @@ class Experiment:
     _descrip = []
     _ready = False
 
-    def __init__(self, description):
+    def __init__(self, description,only_plot = False):
         """ Init the class with a description of the experiment.
 
         :param description: dictionary
@@ -35,6 +35,7 @@ class Experiment:
         quat_used: (bool) indicate if the dataset contains quaternions. Set to True, if so.
         plot_title: (string) a string containing a title that should appear on the plot.
         """
+        self.only_plot = only_plot
         self._descrip = description
 
         # check the dictionary for completeness
@@ -52,130 +53,135 @@ class Experiment:
         :return:
         """
 
-        if self._ready == False:
+        if not self._ready:
             return
+        if not self.only_plot:
+            # Load and prepare the data
+            # [Xtr, Xtr_depth, Ytr, Ytr_pose, Xte, Xte_depth, Yte, Yte_pose]
+            loaded_data = prepare_data_RGBD_6DoF(self._descrip["train_dataset"])
+            # Synthetic data
+            if self._descrip["proof"]:
+                Xtr_rgb0 = loaded_data[0]
+                Xtr_rgb = Xtr_rgb0[510:638]
+                Xtr_depth0 = loaded_data[1]
+                Xtr_depth = Xtr_depth0[510:638]
+                Ytr_mask0 = loaded_data[2]
+                Ytr_mask = Ytr_mask0[510:638]
+                Ytr_pose0 = loaded_data[3]  # [:,0]
+                Ytr_pose = Ytr_pose0[510:638]
 
-        # Load and prepare the data
-        # [Xtr, Xtr_depth, Ytr, Ytr_pose, Xte, Xte_depth, Yte, Yte_pose]
-        loaded_data = prepare_data_RGBD_6DoF(self._descrip["train_dataset"])
-        # Synthetic data
-        if self._descrip["proof"]:
-            Xtr_rgb0 = loaded_data[0]
-            Xtr_rgb = Xtr_rgb0[510:638]
-            Xtr_depth0 = loaded_data[1]
-            Xtr_depth = Xtr_depth0[510:638]
-            Ytr_mask0 = loaded_data[2]
-            Ytr_mask = Ytr_mask0[510:638]
-            Ytr_pose0 = loaded_data[3]  # [:,0]
-            Ytr_pose = Ytr_pose0[510:638]
-
-        else:
-            Xtr_rgb = loaded_data[0]
-            Xtr_depth = loaded_data[1]
-            Ytr_mask = loaded_data[2]
-            Ytr_pose = loaded_data[3]  # [:,0]
-        # convert all quaternions into axis-angle transformation
-        Ytr_pose_aa = []
-        size = Ytr_pose.shape[0]
-        for i in range(0, size):
-            pose = Ytr_pose[i]
-            t = pose[0:3]
-            q = pose[3:7]
-            aa = Quaternion.quat2AxisAngle(q)
-            new_pose = np.array([t[0], t[1], t[2], float(aa[0]), float(aa[1]), float(aa[2]), float(aa[3])])
-            new_pose = new_pose.reshape([1, new_pose.shape[0]])
-            if i == 0:
-                Ytr_pose_aa = new_pose
             else:
-                Ytr_pose_aa = np.concatenate((Ytr_pose_aa, new_pose), axis=0)
+                Xtr_rgb = loaded_data[0]
+                Xtr_depth = loaded_data[1]
+                Ytr_mask = loaded_data[2]
+                Ytr_pose = loaded_data[3]  # [:,0]
+            # convert all quaternions into axis-angle transformation
+            Ytr_pose_aa = []
+            size = Ytr_pose.shape[0]
+            for i in range(0, size):
+                pose = Ytr_pose[i]
+                t = pose[0:3]
+                q = pose[3:7]
+                aa = Quaternion.quat2AxisAngle(q)
+                new_pose = np.array([t[0], t[1], t[2], float(aa[0]), float(aa[1]), float(aa[2]), float(aa[3])])
+                new_pose = new_pose.reshape([1, new_pose.shape[0]])
+                if i == 0:
+                    Ytr_pose_aa = new_pose
+                else:
+                    Ytr_pose_aa = np.concatenate((Ytr_pose_aa, new_pose), axis=0)
 
-        # swap colums for the quaternion from (x, y, z, w) -> (w, x, y, z)
-        # Ytr_pose[:,[3,6]] = Ytr_pose[:,[6,3]]
-        if self._descrip["proof"]:
-            Xte_rgb0 = loaded_data[0]
-            Xte_rgb = Xte_rgb0[510:638]
-            Xte_depth0 = loaded_data[1]
-            Xte_depth =Xte_depth0[510:638]
-            Yte_mask0 = loaded_data[2]
-            Yte_mask=Yte_mask0[510:638]
-            Yte_pose0 = loaded_data[3]  # [:,0]
-            Yte_pose= Yte_pose0[510:638]
+            # swap colums for the quaternion from (x, y, z, w) -> (w, x, y, z)
+            # Ytr_pose[:,[3,6]] = Ytr_pose[:,[6,3]]
+            if self._descrip["proof"]:
+                Xte_rgb0 = loaded_data[0]
+                Xte_rgb = Xte_rgb0[510:638]
+                Xte_depth0 = loaded_data[1]
+                Xte_depth =Xte_depth0[510:638]
+                Yte_mask0 = loaded_data[2]
+                Yte_mask=Yte_mask0[510:638]
+                Yte_pose0 = loaded_data[3]  # [:,0]
+                Yte_pose= Yte_pose0[510:638]
 
-        else:
-            Xte_rgb = loaded_data[4]
-            Xte_depth = loaded_data[5]
-            Yte_mask = loaded_data[6]
-            Yte_pose = loaded_data[7]  # [:,0]
-        Yte_pose_aa = []
-        size = Yte_pose.shape[0]
-        for i in range(0, size):
-            pose = Yte_pose[i]
-            t = pose[0:3]
-            q = pose[3:7]
-            aa = Quaternion.quat2AxisAngle(q)
-            new_pose = np.array([t[0], t[1], t[2], float(aa[0]), float(aa[1]), float(aa[2]), float(aa[3])])
-            new_pose = new_pose.reshape([1, new_pose.shape[0]])
-            if i == 0:
-                Yte_pose_aa = new_pose
             else:
-                Yte_pose_aa = np.concatenate((Yte_pose_aa, new_pose), axis=0)
-        # swap colums for the quaternion from (x, y, z, w) -> (w, x, y, z)
-        # Yte_pose[:,[3,6]] = Yte_pose[:,[6,3]]
+                Xte_rgb = loaded_data[4]
+                Xte_depth = loaded_data[5]
+                Yte_mask = loaded_data[6]
+                Yte_pose = loaded_data[7]  # [:,0]
+            Yte_pose_aa = []
+            size = Yte_pose.shape[0]
+            for i in range(0, size):
+                pose = Yte_pose[i]
+                t = pose[0:3]
+                q = pose[3:7]
+                aa = Quaternion.quat2AxisAngle(q)
+                new_pose = np.array([t[0], t[1], t[2], float(aa[0]), float(aa[1]), float(aa[2]), float(aa[3])])
+                new_pose = new_pose.reshape([1, new_pose.shape[0]])
+                if i == 0:
+                    Yte_pose_aa = new_pose
+                else:
+                    Yte_pose_aa = np.concatenate((Yte_pose_aa, new_pose), axis=0)
+            # swap colums for the quaternion from (x, y, z, w) -> (w, x, y, z)
+            # Yte_pose[:,[3,6]] = Yte_pose[:,[6,3]]
 
 
-        # Init the network
-        if self._descrip["batch"] == False:
-            logs = []
-            solver = self._descrip["solver"](self._descrip["model"], 2, 3, 4, self._descrip["learning_rate"])
-            solver.setParams(self._descrip["num_iterations"], self._descrip["batch_size"], self._descrip["batch_size"])
-            solver.showDebug(self._descrip["debug_output"])
-            solver.setLogPathAndFile(self._descrip["log_path"], self._descrip["log_file"]
-                                     ,self._descrip["plot_title"],(self._descrip["trained_models"]))
-            logs.append(self._descrip["log_path"])
-
-            # start training
-            solver.init(Xtr_rgb.shape[1], Xtr_rgb.shape[2], self._descrip["restore_file"],self._descrip["cont"])
-            solver.img_dimensions(Xtr_rgb.shape[1], Xtr_rgb.shape[2])
-            solver.trainstage(self._descrip["stage2"])
-            solver.drp_cnv(self._descrip["drp_cnv"])
-            solver.drp_pose(self._descrip["drp_pose"])
-            if self._descrip["train"]:
-                solver.train( Xtr_rgb, Xtr_depth, Ytr_mask, Ytr_pose, Xte_rgb, Xte_depth, Yte_mask, Yte_pose)
-        else:
-            j=0;
-            logs = []
-            for i in decimal_range(self._descrip["learning_rate"],0.1,0.001):
-                j=j+1
-                solver = self._descrip["solver"](self._descrip["model"], 2, 3, 4, (self._descrip["learning_rate"]+i))
+            # Init the network
+            if self._descrip["batch"] == False:
+                logs = []
+                solver = self._descrip["solver"](self._descrip["model"], 2, 3, 4, self._descrip["learning_rate"])
                 solver.setParams(self._descrip["num_iterations"], self._descrip["batch_size"], self._descrip["batch_size"])
                 solver.showDebug(self._descrip["debug_output"])
-                log_path = self._descrip["log_path"][:-1] + str(j) + "/"
-                logs.append(log_path)
-                solver.setLogPathAndFile((log_path), (self._descrip["log_file"]),
-                                         (self._descrip["plot_title"]),(self._descrip["trained_models"]))
+                solver.setLogPathAndFile(self._descrip["log_path"], self._descrip["log_file"]
+                                         ,self._descrip["plot_title"],(self._descrip["trained_models"]))
+                logs.append(self._descrip["log_path"])
 
                 # start training
-                solver.init(Xtr_rgb.shape[1], Xtr_rgb.shape[2], self._descrip["restore_file"], self._descrip["cont"])
+                solver.init(Xtr_rgb.shape[1], Xtr_rgb.shape[2], self._descrip["restore_file"],self._descrip["cont"])
                 solver.img_dimensions(Xtr_rgb.shape[1], Xtr_rgb.shape[2])
                 solver.trainstage(self._descrip["stage2"])
                 solver.drp_cnv(self._descrip["drp_cnv"])
                 solver.drp_pose(self._descrip["drp_pose"])
                 if self._descrip["train"]:
-                    solver.train(Xtr_rgb, Xtr_depth, Ytr_mask, Ytr_pose, Xte_rgb, Xte_depth, Yte_mask, Yte_pose)
+                    solver.train( Xtr_rgb, Xtr_depth, Ytr_mask, Ytr_pose, Xte_rgb, Xte_depth, Yte_mask, Yte_pose)
+            else:
+                j=0;
+                logs = []
+                for i in decimal_range(self._descrip["learning_rate"],0.1,0.001):
+                    j=j+1
+                    solver = self._descrip["solver"](self._descrip["model"], 2, 3, 4, (self._descrip["learning_rate"]+i))
+                    solver.setParams(self._descrip["num_iterations"], self._descrip["batch_size"], self._descrip["batch_size"])
+                    solver.showDebug(self._descrip["debug_output"])
+                    log_path = self._descrip["log_path"][:-1] + str(j) + "/"
+                    logs.append(log_path)
+                    solver.setLogPathAndFile((log_path), (self._descrip["log_file"]),
+                                             (self._descrip["plot_title"]),(self._descrip["trained_models"]))
 
-        plot_stuff(logs, Xtr_rgb.shape[1], Xtr_rgb.shape[2],self._descrip["batch"])
+                    # start training
+                    solver.init(Xtr_rgb.shape[1], Xtr_rgb.shape[2], self._descrip["restore_file"], self._descrip["cont"])
+                    solver.img_dimensions(Xtr_rgb.shape[1], Xtr_rgb.shape[2])
+                    solver.trainstage(self._descrip["stage2"])
+                    solver.drp_cnv(self._descrip["drp_cnv"])
+                    solver.drp_pose(self._descrip["drp_pose"])
+                    if self._descrip["train"]:
+                        solver.train(Xtr_rgb, Xtr_depth, Ytr_mask, Ytr_pose, Xte_rgb, Xte_depth, Yte_mask, Yte_pose)
+
+            plot_stuff(logs, Xtr_rgb.shape[1], Xtr_rgb.shape[2],self._descrip["batch"])
+
+        else:
+            logs=[]
+            logs.append(self._descrip["log_path"])
+            plot_stuff(logs, 128, 128, False)
         # evaluate
         # if self._descrip["test"]:
         #     solver.eval(Xte_rgb, Xte_depth, Yte_mask, Yte_pose)
         #
         # # evaluation with a second evaluation set.
-        if self._descrip["eval"] and len(self._descrip["eval_dataset"]) > 0:
-            loaded_eval_data = prepare_data_RGBD_6DoF(self._descrip["eval_dataset"])
-            # Real world evaluation data
-            Xev_rgb = loaded_eval_data[0]
-            Xev_depth = loaded_eval_data[1]
-            Yev_mask = loaded_eval_data[2]
-            Yev_pose = loaded_eval_data[3]  # [:,0]
+        # if self._descrip["eval"] and len(self._descrip["eval_dataset"]) > 0:
+        #     loaded_eval_data = prepare_data_RGBD_6DoF(self._descrip["eval_dataset"])
+        #     # Real world evaluation data
+        #     Xev_rgb = loaded_eval_data[0]
+        #     Xev_depth = loaded_eval_data[1]
+        #     Yev_mask = loaded_eval_data[2]
+        #     Yev_pose = loaded_eval_data[3]  # [:,0]
 
             # swap colums for the quaternion from (x, y, z, w) -> (w, x, y, z)
             # Yev_pose[:,[3,6]] = Yev_pose[:,[6,3]]
@@ -197,7 +203,7 @@ class Experiment:
         """
         error_level = 0
 
-        expected_keys = ["train_dataset", "eval_dataset", "solver", "model", "num_iterations", "debug_output", "log_path",
+        expected_keys = ["only_plot","train_dataset", "eval_dataset", "solver", "model", "num_iterations", "debug_output", "log_path",
                          "log_file", "train", "eval", "test","proof", "restore_file", "quat_used", "plot_title",
                          "learning_rate", "label","stage2","cont","drp_cnv","drp_pose","batch_size", "only_r","batch"
                         ,"trained_models"]
@@ -212,7 +218,7 @@ class Experiment:
                     break
 
         # Check the missing variables and try to fix them
-        if len(expected_keys) > 0:
+        if len(expected_keys) > 0 and self.only_plot is False:
             print("WARNING - Not all variables have been set. Miss the following variables")
             for i in expected_keys:
                 print(i + ", ")
@@ -296,5 +302,11 @@ class Experiment:
                 elif i == "label":
                     self._descrip["label"] = "Unlabeled experiment"
 
+
+        else:
+            for i in expected_keys:
+                if i == "log_path":
+                    print("Plotting function needs log_path. Aborting!!")
+                    error_level = 2
 
         return error_level

@@ -4,6 +4,7 @@ sys.dont_write_bytecode = True
 from models.m_sub.SM1 import *
 from models.m_sub.SM2 import *
 from models.m_sub.SM3 import *
+from models.m_sub.SM4 import *
 from solvers.Solver_reim_cm import *
 
 
@@ -20,7 +21,7 @@ def exs(name):
     ex_n["num_iterations"] = 100
     ex_n["log_path"] = "./log_test/ex_n/"
     ex_n["trained_models"] = "./trained_models/test/ex_n/"
-    ex_n["cont"] = False
+    ex_n["cont"] = True
     ex_n["log_file"] = "plx128"
     ex_n["train"] = True
     ex_n["proof"] = False
@@ -69,17 +70,17 @@ def exs(name):
     ex_n3["train_dataset"] = "../../datasets/tr-128-comb.pickle"
     ex_n3["eval_dataset"] = "../../datasets/tr-128-comb.pickle"
     ex_n3["solver"] = Solver_reim_cm
-    ex_n3["model"] = SM1
-    ex_n3["learning_rate"] = 0.001
+    ex_n3["model"] = SM4
+    ex_n3["learning_rate"] = 0.0001
     ex_n3["num_iterations"] = 100
     ex_n3["log_path"] = "./log_test/ex_n3/"
     ex_n3["trained_models"] = "./trained_models/test/ex_n3/"
-    ex_n3["log_file"] = "plx128"
+    ex_n3["log_file"] = "plx128_M8_upsampling_acts_batch_norm"
     ex_n3["train"] = True
-    ex_n3["cont"] = True
+    ex_n3["cont"] = False
     ex_n3["proof"] = False
     ex_n3["stage2"] = False
-    ex_n3["drp_cnv"] = 0.3
+    ex_n3["drp_cnv"] = 0.2
     if name == "ex_n3":
         name = ex_n3
 
@@ -87,16 +88,16 @@ def exs(name):
     ex_n4["train_dataset"] = "../../datasets/tr-128-comb.pickle"
     ex_n4["eval_dataset"] = "../../datasets/tr-128-comb.pickle"
     ex_n4["solver"] = Solver_reim_cm
-    ex_n4["model"] = SM2
-    ex_n4["learning_rate"] = 0.001
+    ex_n4["model"] = SM1
+    ex_n4["learning_rate"] = 0.0001
     ex_n4["num_iterations"] = 100
     ex_n4["log_path"] = "./log_test/ex_n4/"
     ex_n4["trained_models"] = "./trained_models/test/ex_n4/"
-    ex_n4["log_file"] = "plx128"
+    ex_n4["log_file"] = "plx128_ex_n_with_10p_more_dropout"
     ex_n4["train"] = True
     ex_n4["proof"] = False
     ex_n4["stage2"] = False
-    ex_n4["drp_cnv"] = 0.1
+    ex_n4["drp_cnv"] = 0.3
     if name == "ex_n4":
         name = ex_n4
 
@@ -104,17 +105,17 @@ def exs(name):
     ex_n5["train_dataset"] = "../../datasets/tr-128-comb.pickle"
     ex_n5["eval_dataset"] = "../../datasets/tr-128-comb.pickle"
     ex_n5["solver"] = Solver_reim_cm
-    ex_n5["model"] = SM2
-    ex_n5["learning_rate"] = 0.001
+    ex_n5["model"] = SM3
+    ex_n5["learning_rate"] = 0.0001
     ex_n5["num_iterations"] = 100
     ex_n5["log_path"] = "./log_test/ex_n5/"
     ex_n5["trained_models"] = "./trained_models/test/ex_n5/"
-    ex_n5["log_file"] = "plx128"
+    ex_n5["log_file"] = "plx128_ex_n2_with_10p_more_dropout"
     ex_n5["train"] = True
-    ex_n5["cont"] = True
+    ex_n5["cont"] = False
     ex_n5["proof"] = False
     ex_n5["stage2"] = False
-    ex_n5["drp_cnv"] = 0.2
+    ex_n5["drp_cnv"] = 0.3
     if name == "ex_n5":
         name = ex_n5
 
@@ -122,17 +123,17 @@ def exs(name):
     ex_n6["train_dataset"] = "../../datasets/tr-128-comb.pickle"
     ex_n6["eval_dataset"] = "../../datasets/tr-128-comb.pickle"
     ex_n6["solver"] = Solver_reim_cm
-    ex_n6["model"] = SM2
-    ex_n6["learning_rate"] = 0.001
+    ex_n6["model"] = SM1
+    ex_n6["learning_rate"] = 0.0001
     ex_n6["num_iterations"] = 100
     ex_n6["log_path"] = "./log_test/ex_n6/"
     ex_n6["trained_models"] = "./trained_models/test/ex_n6/"
-    ex_n6["log_file"] = "plx128"
+    ex_n6["log_file"] = "plx128_ex_n_with_40p_dropout"
     ex_n6["train"] = True
-    ex_n6["cont"] = True
+    ex_n6["cont"] = False
     ex_n6["proof"] = False
     ex_n6["stage2"] = False
-    ex_n6["drp_cnv"] = 0.3
+    ex_n6["drp_cnv"] = 0.4
     if name == "ex_n6":
         name = ex_n6
 
@@ -140,17 +141,17 @@ def exs(name):
     ex_n7["train_dataset"] = "../../datasets/tr-128-comb.pickle"
     ex_n7["eval_dataset"] = "../../datasets/tr-128-comb.pickle"
     ex_n7["solver"] = Solver_reim_cm
-    ex_n7["model"] = SM2
-    ex_n7["learning_rate"] = 0.001
+    ex_n7["model"] = SM3
+    ex_n7["learning_rate"] = 0.0001
     ex_n7["num_iterations"] = 100
     ex_n7["log_path"] = "./log_test/ex_n7/"
     ex_n7["trained_models"] = "./trained_models/test/ex_n7/"
-    ex_n7["log_file"] = "plx128"
+    ex_n7["log_file"] = "plx128_ex_n2_with_40p_dropout"
     ex_n7["train"] = True
-    ex_n7["cont"] = True
+    ex_n7["cont"] = False
     ex_n7["proof"] = False
     ex_n7["stage2"] = False
-    ex_n7["drp_cnv"] = 0.1
+    ex_n7["drp_cnv"] = 0.4
     if name == "ex_n7":
         name = ex_n7
 

@@ -2,8 +2,10 @@
 import sys
 sys.dont_write_bytecode = True
 from models.M1 import *
-from models.M2 import *
-from models.m_sub.SM1 import *
+from models.m_sub.SM11 import *
+from models.m_sub.SM22 import *
+from models.m_sub.SM33 import *
+from models.m_sub.SM44 import *
 from solvers.Solver_reim_cm import *
 
 # This experiment works with the bunny model 128 x 128 pixels.
@@ -13,10 +15,10 @@ def exs(name):
     ex_test1["train_dataset"] = "../../datasets/real-5k-128.pickle"
     ex_test1["eval_dataset"] = "../../datasets/real-5k-128.pickle"
     ex_test1["solver"] = Solver_reim_cm
-    ex_test1["model"] = SM1
+    ex_test1["model"] = SM44
     ex_test1["batch_size"] = 64
-    ex_test1["learning_rate"] = 0.001
-    ex_test1["num_iterations"] = 50
+    ex_test1["learning_rate"] = 0.00001
+    ex_test1["num_iterations"] = 10
     ex_test1["log_path"] = "./log_shrt/ex_test1/"
     ex_test1["log_file"] = "plx128"
     ex_test1["trained_models"] = "./trained_models/shrt/ex_test1/"
@@ -33,9 +35,9 @@ def exs(name):
     ex_test2["train_dataset"] = "../../datasets/tr-128-comb.pickle"
     ex_test2["eval_dataset"] = "../../datasets/tr-128-comb.pickle"
     ex_test2["solver"] = Solver_reim_cm
-    ex_test2["model"] = M2
+    ex_test2["model"] = SM22
     ex_test2["batch_size"] = 128
-    ex_test2["learning_rate"] = 0.001
+    ex_test2["learning_rate"] = 0.00001
     ex_test2["num_iterations"] = 100
     ex_test2["log_path"] = "./log_shrt/ex_test2/"
     ex_test2["log_file"] = "plx128"

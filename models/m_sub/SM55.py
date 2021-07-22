@@ -1,26 +1,18 @@
 # import the necessary packages
 from models.m_sub.nconv_layer import *
-from models.m_sub.conva_layer import *
+from models.m_sub.convaa_layer import *
 from models.m_sub.upsample_layer import *
 import tensorflow as tf
-class SM3(keras.Model):
+class SM44(keras.Model):
     """
     Model sub-class
     """
     def __init__(self, number_classes=2,img_height=128,chanDim=-1):
         #Call the parent constructor
-        super(SM3,self).__init__()
+        super(SM44,self).__init__()
         self.number_of_classes = number_classes
         self.img_height = img_height
 
-        self.scale1 = tf.Variable(tf.ones([32]),trainable=True)
-        self.beta1 = tf.Variable(tf.zeros([32]),trainable=True)
-        self.scale2 = tf.Variable(tf.ones([64]),trainable=True)
-        self.beta2 = tf.Variable(tf.zeros([64]),trainable=True)
-        self.scale3 = tf.Variable(tf.ones([128]),trainable=True)
-        self.beta3 = tf.Variable(tf.zeros([128]),trainable=True)
-        self.scale4 = tf.Variable(tf.ones([256]),trainable=True)
-        self.beta4 = tf.Variable(tf.zeros([256]),trainable=True)
         # Encoder
         # Layer 1
         self.conv1 = nconv_layer((3,3),3,32,(1,1),tf.keras.initializers.RandomNormal(stddev=0.01),wname = "w1")
@@ -34,16 +26,16 @@ class SM3(keras.Model):
         # Decoder
         # Layer 5
         self.up_sam5 = upsample_layer(256,2,"deconv1")
-        self.conv5u = conva_layer((3, 3), 256, 128, (1, 1), tf.keras.initializers.RandomNormal(stddev=0.01), wname="pw1")
+        self.conv5u = convaa_layer((3, 3), 256, 128, (1, 1), tf.keras.initializers.RandomNormal(stddev=0.01), wname="pw1")
         # Layer 6
         self.up_sam6 = upsample_layer(128,2,"deconv2")
-        self.conv6u = conva_layer((3, 3), 128, 64, (1, 1), tf.keras.initializers.RandomNormal(stddev=0.01), wname="pw2")
+        self.conv6u = convaa_layer((3, 3), 128, 64, (1, 1), tf.keras.initializers.RandomNormal(stddev=0.01), wname="pw2")
         # Layer 7
         self.up_sam7 = upsample_layer(64,2,"deconv3")
-        self.conv7u = conva_layer((3, 3), 64, 32, (1, 1), tf.keras.initializers.RandomNormal(stddev=0.01), wname="pw3")
+        self.conv7u = convaa_layer((3, 3), 64, 32, (1, 1), tf.keras.initializers.RandomNormal(stddev=0.01), wname="pw3")
         # Layer 8
         self.up_sam8 = upsample_layer(32,2,"deconv4")
-        self.conv8u = conva_layer((3, 3), 32, self.number_of_classes, (1, 1),
+        self.conv8u = convaa_layer((3, 3), 32, self.number_of_classes, (1, 1),
                                  tf.keras.initializers.RandomNormal(stddev=0.01), wname="pw4")
         ##----------------------------------------------------------------------------------------
 
@@ -52,32 +44,32 @@ class SM3(keras.Model):
         """
         """
         # Layer 1
-        x = self.conv1(inputs,drop_conv,self.beta1,self.scale1)
+        x = self.conv1(inputs,drop_conv,training)
 
         # Layer 2
-        x = self.conv2(x,drop_conv,self.beta2,self.scale2)
+        x = self.conv2(x,drop_conv,training)
 
         # Layer 3
-        x = self.conv3(x,drop_conv,self.beta3,self.scale3)
+        x = self.conv3(x,drop_conv,training)
 
         # Layer 4
-        x = self.conv4(x,drop_conv,self.beta4,self.scale4)
+        x = self.conv4(x,drop_conv,training)
 
         # Layer 5
         x = self.up_sam5(x)
-        x = self.conv5u(x)
+        x = self.conv5u(x,drop_conv)
 
         # Layer 6
         x = self.up_sam6(x)
-        x = self.conv6u(x)
+        x = self.conv6u(x,drop_conv)
 
         # Layer 7
         x = self.up_sam7(x)
-        x = self.conv7u(x)
+        x = self.conv7u(x,drop_conv)
 
         # Layer 8
         x = self.up_sam8(x)
-        x = self.conv8u(x)
+        x = self.conv8u(x,drop_conv)
         seg_logits= tf.reshape(tensor=x,shape=(-1, self.img_height * self.img_height, self.number_of_classes))
         ## First to second stage transition
         result_max = tf.argmax(x, 3)  # max result along axis 3

@@ -3,13 +3,13 @@ from models.m_sub.nconv_layer import *
 from models.m_sub.conva_layer import *
 from models.m_sub.upsample_layer import *
 import tensorflow as tf
-class SM3(keras.Model):
+class SM4(keras.Model):
     """
     Model sub-class
     """
     def __init__(self, number_classes=2,img_height=128,chanDim=-1):
         #Call the parent constructor
-        super(SM3,self).__init__()
+        super(SM4,self).__init__()
         self.number_of_classes = number_classes
         self.img_height = img_height
 
@@ -52,16 +52,16 @@ class SM3(keras.Model):
         """
         """
         # Layer 1
-        x = self.conv1(inputs,drop_conv,self.beta1,self.scale1)
+        x = self.conv1(inputs,drop_conv,self.beta1,self.scale1,training)
 
         # Layer 2
-        x = self.conv2(x,drop_conv,self.beta2,self.scale2)
+        x = self.conv2(x,drop_conv,self.beta2,self.scale2,training)
 
         # Layer 3
-        x = self.conv3(x,drop_conv,self.beta3,self.scale3)
+        x = self.conv3(x,drop_conv,self.beta3,self.scale3,training)
 
         # Layer 4
-        x = self.conv4(x,drop_conv,self.beta4,self.scale4)
+        x = self.conv4(x,drop_conv,self.beta4,self.scale4,training)
 
         # Layer 5
         x = self.up_sam5(x)

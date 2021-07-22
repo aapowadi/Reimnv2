@@ -23,18 +23,17 @@ class nconv_layer(keras.layers.Layer):
             initial_value=self.kernel_initializer(shape=(*self.kernel_size, self.n_channels, self.n_filters),
                                                   dtype='float32'), trainable=True, name=self.wname, dtype=tf.float32)
 
+        self.scale1 = tf.Variable(tf.ones([self.n_filters]),trainable=True)
+        self.beta1 = tf.Variable(tf.zeros([self.n_filters]),trainable=True)
         ##----------------------------------------------------------------------------------------
-    def call(self, X, drop_conv, beta2, scale2, training=False, epsilon=1e-3):
+    def call(self, X,training=False, epsilon=1e-3):
         """
         """
         conv1 = tf.nn.conv2d(X, self.w, self.strides, padding=self.padding)
         if training:
             batch_mean2, batch_var2 = tf.nn.moments(conv1, [0])
-            bn1 = tf.nn.batch_normalization(conv1, batch_mean2, batch_var2, beta2, scale2, epsilon)
+            bn1 = tf.nn.batch_normalization(conv1, batch_mean2, batch_var2, self.beta1, self.scale1, epsilon)
             conv1_a = tf.nn.relu(bn1)
         else:
             conv1_a = tf.nn.relu(conv1)
-        conv1 = tf.nn.max_pool(conv1_a, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
-        conv1 = tf.nn.dropout(conv1, drop_conv)
-
-        return conv1
+        return conv1_a

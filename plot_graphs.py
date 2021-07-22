@@ -40,7 +40,7 @@ def plot_stuff(logs,im_width, im_height,batch = False):
             set+=1
             size = len(seg_train_rec[i])
             tt = np.arange(0.0, size, 1)
-        # Precision Plots
+        # Accuracy Plots
             plt.clf()
             plt.cla()
             plt.figure()
@@ -48,27 +48,14 @@ def plot_stuff(logs,im_width, im_height,batch = False):
             for j in range (i-10,i):
                 plt.plot(tt, seg_train_prec[j], label='precision_train')
                 plt.plot(tt, seg_test_prec[j], label='precision_test')
-            plt.xlabel('Epoch')
-            plt.ylabel('Precision')
-            plt.title('Train-segmentation_precision - 128x128')
-            plt.legend()
-            plt.savefig(res_path + "seg_prec_set%d.png"%set)
-            plt.close()
-        # Recall Plots
-            plt.clf()
-            plt.cla()
-            plt.figure()
-            plt.ylim(0, 1.0)
-            for j in range(i - 10, i):
                 plt.plot(tt, seg_train_rec[j], label='recall_train')
                 plt.plot(tt, seg_test_rec[j], label='recall_test')
             plt.xlabel('Epoch')
-            plt.ylabel('Recall')
-            plt.title('Train-segmentation_recall - 128x128')
+            plt.ylabel('Accuracy')
+            plt.title('Train-segmentation_Accuracy - 128x128')
             plt.legend()
-            plt.savefig(res_path + "seg_rec_set%d.png"%set)
+            plt.savefig(res_path + "Accuracy%d.png"%set)
             plt.close()
-
         # Loss Plots
             plt.clf()
             plt.cla()
@@ -89,34 +76,20 @@ def plot_stuff(logs,im_width, im_height,batch = False):
         plt.cla()
         plt.figure()
         plt.ylim(0, 1.0)
+        #plt.xlim(0,200)
         for j in range(0, l):
             size = len(seg_train_prec[j])
             tt = np.arange(1, size+1, 1)
             plt.plot(tt, seg_train_prec[j], label='precision_train_%d'%j)
             plt.plot(tt, seg_test_prec[j], label='precision_test_%d'%j)
-        plt.xlabel('Epoch')
-        plt.ylabel('Precision')
-        plt.title('Train-segmentation_precision - 128x128')
-        plt.legend()
-        plt.savefig(res_path + "seg_prec_set%d.png" % set)
-        plt.close()
-        # Recall Plots
-        plt.clf()
-        plt.cla()
-        plt.figure()
-        plt.ylim(0, 1.0)
-        for j in range(0, l):
-            size = len(seg_train_rec[j])
-            tt = np.arange(1, size+1, 1)
             plt.plot(tt, seg_train_rec[j], label='recall_train_%d'%j)
             plt.plot(tt, seg_test_rec[j], label='recall_test%d'%j)
         plt.xlabel('Epoch')
-        plt.ylabel('Recall')
-        plt.title('Train-segmentation_recall - 128x128')
+        plt.ylabel('Accuracy')
+        plt.title('Train-segmentation_Accuracy - 128x128')
         plt.legend()
-        plt.savefig(res_path + "seg_rec_set%d.png" % set)
+        plt.savefig(res_path + "Accuracy%d.png" % set)
         plt.close()
-
         # Loss Plots
         plt.clf()
         plt.cla()
