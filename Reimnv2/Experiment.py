@@ -1,9 +1,9 @@
 import sys
 sys.dont_write_bytecode = True
-from solvers.Solver_reim_cm import *
-from models.filetools import *
-from solvers.tools.quattool import *
-from plot_graphs import *
+from .solvers.Solver_reim_cm import *
+from .models.filetools import *
+from .solvers.tools.quattool import *
+from .plot_graphs import *
 
 class Experiment:
     """Universal class to run CNN model experiments.

@@ -1,0 +1,7 @@
+#Images Folder
+__pycache__
+build/*
+dist/*
+*egg*
+*~
+*.bak

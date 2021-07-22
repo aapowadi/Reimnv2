@@ -3,8 +3,8 @@
 import tensorflow as tf
 import numpy as np
 import pickle
-from models.cnntools import *
-from models.plottools import *
+from .cnntools import *
+from .plottools import *
 import cv2
 
 

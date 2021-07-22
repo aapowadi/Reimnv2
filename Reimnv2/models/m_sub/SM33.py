@@ -1,7 +1,7 @@
 # import the necessary packages
-from models.m_sub.nconv_layer import *
-from models.m_sub.conva_layer import *
-from models.m_sub.upsample_layer import *
+from .nconv_layer import *
+from .conva_layer import *
+from .upsample_layer import *
 import tensorflow as tf
 class SM33(keras.Model):
     """

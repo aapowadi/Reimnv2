@@ -2,9 +2,9 @@ import sys
 sys.dont_write_bytecode = True
 import pathlib
 import cv2
-from solvers.tools.reim_loss import *
+from .tools.reim_loss import *
 import tensorflow as tf
-from solvers.tools.test_tool import *
+from .tools.test_tool import *
 
 class Solver_reim_cm:
     """

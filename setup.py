@@ -87,6 +87,10 @@ setup(name="",
       zip_safe=False,
       packages=[
           "Reimnv2",
+          "Reimnv2.solvers",
+          "Reimnv2.solvers.tools",
+          "Reimnv2.models",
+          "Reimnv2.models.m_sub",
           #"Reimnv2.bin"
       ],
       cmdclass={"install_lib": install_lib_save_version },
