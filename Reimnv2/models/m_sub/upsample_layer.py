@@ -10,7 +10,7 @@ class upsample_layer(keras.layers.Layer):
     """
 
     def __init__(self,n_channels,
-                 upscale_factor, wname = "kernel"):
+                 upscale_factor, wname = "kernel" , trainable = True):
         # Call the parent constructor
         super(upsample_layer, self).__init__()
         self.n_channels = n_channels
@@ -19,11 +19,13 @@ class upsample_layer(keras.layers.Layer):
         self.kernel_size = 2 * self.upscale_factor - self.upscale_factor % 2
         self.stride = self.upscale_factor
         self.strides = [1, self.stride, self.stride, 1]
+        self.trainable = trainable
         ##----------------------------------------------------------------------------------------
 
-    def call(self, inputs,training = False):
+    def call(self, inputs,trainable = True):
         """
         """
+        #self.bilinear_weights.trainable = trainable
         in_shape = tf.shape(inputs)
 
         h = ((in_shape[1] - 1) * self.stride) + 2
@@ -57,7 +59,7 @@ class upsample_layer(keras.layers.Layer):
         for i in range(filter_shape[2]):
             weights[:, :, i, i] = bilinear
         init = tf.constant_initializer(value=weights)
-        self.bilinear_weights = tf.Variable(initial_value = init(weights.shape,dtype=tf.float32), trainable=True,
+        self.bilinear_weights = tf.Variable(initial_value = init(weights.shape,dtype=tf.float32), trainable=self.trainable,
                                             name=self.wname, dtype=tf.float32)
 
 

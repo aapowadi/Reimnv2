@@ -1,6 +1,6 @@
 # import the necessary packages
 from models.m_sub.nconv_layer import *
-from models.m_sub.convaa_layer import *
+from models.m_sub.conva_layer import *
 from models.m_sub.upsample_layer import *
 import tensorflow as tf
 class SM44(keras.Model):
@@ -26,16 +26,16 @@ class SM44(keras.Model):
         # Decoder
         # Layer 5
         self.up_sam5 = upsample_layer(256,2,"deconv1")
-        self.conv5u = convaa_layer((3, 3), 256, 128, (1, 1), tf.keras.initializers.RandomNormal(stddev=0.01), wname="pw1")
+        self.conv5u = conva_layer((3, 3), 256, 128, (1, 1), tf.keras.initializers.RandomNormal(stddev=0.01), wname="pw1")
         # Layer 6
         self.up_sam6 = upsample_layer(128,2,"deconv2")
-        self.conv6u = convaa_layer((3, 3), 128, 64, (1, 1), tf.keras.initializers.RandomNormal(stddev=0.01), wname="pw2")
+        self.conv6u = conva_layer((3, 3), 128, 64, (1, 1), tf.keras.initializers.RandomNormal(stddev=0.01), wname="pw2")
         # Layer 7
         self.up_sam7 = upsample_layer(64,2,"deconv3")
-        self.conv7u = convaa_layer((3, 3), 64, 32, (1, 1), tf.keras.initializers.RandomNormal(stddev=0.01), wname="pw3")
+        self.conv7u = conva_layer((3, 3), 64, 32, (1, 1), tf.keras.initializers.RandomNormal(stddev=0.01), wname="pw3")
         # Layer 8
         self.up_sam8 = upsample_layer(32,2,"deconv4")
-        self.conv8u = convaa_layer((3, 3), 32, self.number_of_classes, (1, 1),
+        self.conv8u = conva_layer((3, 3), 32, self.number_of_classes, (1, 1),
                                  tf.keras.initializers.RandomNormal(stddev=0.01), wname="pw4")
         ##----------------------------------------------------------------------------------------
 

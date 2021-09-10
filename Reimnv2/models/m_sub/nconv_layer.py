@@ -8,7 +8,8 @@ class nconv_layer(keras.layers.Layer):
     Model sub-class
     """
 
-    def __init__(self, kernel_size, n_channels, n_filters, strides, kernel_initializer, padding="SAME", wname="kernel"):
+    def __init__(self, kernel_size, n_channels, n_filters, strides, kernel_initializer, padding="SAME", wname="kernel"
+                 , trainable = True):
         # Call the parent constructor
         super(nconv_layer, self).__init__()
         self.n_filters = n_filters
@@ -19,12 +20,13 @@ class nconv_layer(keras.layers.Layer):
         self.w = None
         self.padding = padding
         self.wname = wname
+        self.trainable = trainable
         self.w = tf.Variable(
             initial_value=self.kernel_initializer(shape=(*self.kernel_size, self.n_channels, self.n_filters),
-                                                  dtype='float32'), trainable=True, name=self.wname, dtype=tf.float32)
+                                                  dtype='float32'), trainable=self.trainable, name=self.wname, dtype=tf.float32)
 
-        self.scale1 = tf.Variable(tf.ones([self.n_filters]),trainable=True)
-        self.beta1 = tf.Variable(tf.zeros([self.n_filters]),trainable=True)
+        self.scale1 = tf.Variable(tf.ones([self.n_filters]),trainable=self.trainable)
+        self.beta1 = tf.Variable(tf.zeros([self.n_filters]),trainable=self.trainable)
         ##----------------------------------------------------------------------------------------
     def call(self, X,training=False, epsilon=1e-3):
         """
