@@ -95,9 +95,10 @@ setup(name="",
       ],
       cmdclass={"install_lib": install_lib_save_version },
       #package_data={"Reimnv2": Reimnv2_package_files},
-      entry_points={"limatix.processtrak.step_url_search_path": [ "limatix.share.pt_steps = Reimnv2:getstepurlpath" ],
-                    #"console_scripts": console_scripts_entrypoints,
-                    #"gui_scripts": gui_scripts_entrypoints 
-                    })
+      #entry_points={"limatix.processtrak.step_url_search_path": [ "limatix.share.pt_steps = Reimnv2:getstepurlpath" ],
+      #              #"console_scripts": console_scripts_entrypoints,
+      #              #"gui_scripts": gui_scripts_entrypoints 
+      #              }
+      )
 
 
