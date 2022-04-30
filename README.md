@@ -3,7 +3,7 @@ Research on using riemannian geodesics to improve 6-DoF pose estimation. (Tensor
 
 Date: 3-15-21
 
-1) Built the Autoencoder to get the outlines of the object (Segmentation).
+1) Built the Encoder-Decoder to get the outlines of the object (Segmentation).
 
 Next Steps
 
